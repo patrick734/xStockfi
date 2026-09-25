@@ -572,11 +572,11 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
           <div class="wallet-sub">Browser extension</div>
         </div>
       </div>
-      <div class="wallet-opt" onclick="mockConnect('WalletConnect')">
-        <div class="wallet-icon" style="background:#3b99fc22;">🔗</div>
+      <div class="wallet-opt" onclick="mockConnect('OKX')">
+        <div class="wallet-icon" style="background:#00000033;font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);">OK</div>
         <div class="wallet-info">
-          <div class="wallet-name">WalletConnect</div>
-          <div class="wallet-sub">Scan with mobile wallet</div>
+          <div class="wallet-name">OKX Wallet</div>
+          <div class="wallet-sub">Browser extension</div>
         </div>
       </div>
       <div class="wallet-opt" onclick="mockConnect('Coinbase Wallet')">
@@ -591,6 +591,13 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
         <div class="wallet-info">
           <div class="wallet-name">Rabby</div>
           <div class="wallet-sub">Multi-chain browser wallet</div>
+        </div>
+      </div>
+      <div class="wallet-opt" onclick="mockConnect('WalletConnect')">
+        <div class="wallet-icon" style="background:#3b99fc22;">🔗</div>
+        <div class="wallet-info">
+          <div class="wallet-name">WalletConnect</div>
+          <div class="wallet-sub">Scan with mobile wallet</div>
         </div>
       </div>
     </div>
@@ -866,16 +873,27 @@ function hideConnect(e){
 async function mockConnect(name){
   // Real wallet connection via EIP-1193
   let ethProvider;
-  if(name === 'MetaMask'){
-    if(!window.ethereum) { showToast('MetaMask not found. Install it first.'); return; }
-    ethProvider = window.ethereum;
+  if(name === 'OKX'){
+    if(window.okxwallet){
+      ethProvider = window.okxwallet;
+    } else if(window.ethereum?.isOkxWallet){
+      ethProvider = window.ethereum;
+    } else {
+      showToast('OKX Wallet not found. Install the extension first.');
+      window.open('https://www.okx.com/web3/build/docs/sdks/chains/evm/provider','_blank');
+      return;
+    }
+  } else if(name === 'MetaMask'){
+    if(window.ethereum?.isMetaMask) { ethProvider = window.ethereum; }
+    else if(!window.ethereum) { showToast('MetaMask not found. Install it first.'); return; }
+    else { ethProvider = window.ethereum; }
   } else if(name === 'Coinbase Wallet'){
     if(!window.ethereum?.isCoinbaseWallet && !window.coinbaseWalletExtension){
       showToast('Coinbase Wallet not found.'); return;
     }
     ethProvider = window.coinbaseWalletExtension || window.ethereum;
   } else {
-    // WalletConnect / Rabby / any injected
+    // Rabby / WalletConnect / any injected
     if(!window.ethereum) { showToast('No wallet detected.'); return; }
     ethProvider = window.ethereum;
   }
