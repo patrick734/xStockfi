@@ -442,7 +442,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
                 <span class="label">Est. Premium</span>
                 <span class="val" id="premiumVal">—</span>
               </div>
-              <button class="btn-trade" id="tradeBtn" onclick="showConnect()">Write Call → Connect Wallet</button>
+              <button class="btn-trade" id="tradeBtn" onclick="executeTrade()">Write Call → Connect Wallet</button>
             </div>
           </div>
 
@@ -493,7 +493,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
                 <span class="label">Max Payout</span>
                 <span class="val" style="color:var(--green)" id="binPayout">185.00 USDG</span>
               </div>
-              <button class="btn-trade" onclick="showConnect()">Place Binary Bet → Connect Wallet</button>
+              <button class="btn-trade" onclick="executeTrade()">Place Binary Bet → Connect Wallet</button>
             </div>
           </div>
         </div>
@@ -523,7 +523,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
                 <span class="label">Weekly yield est.</span>
                 <span class="val" style="color:var(--green)">~3.54 USDG / week</span>
               </div>
-              <button class="btn-trade" onclick="showConnect()">Deposit to Vault → Connect Wallet</button>
+              <button class="btn-trade" onclick="executeTrade()">Deposit to Vault → Connect Wallet</button>
             </div>
           </div>
           <div class="info-card">
@@ -653,8 +653,30 @@ let activeCat = 'all';
 let activeProd = 'write';
 let binaryDir = null;
 let connected = false;
+let walletAddress = null;
+let signer = null;
 let oracleAge = 0;
 let provider, oracleContract, vaultContract;
+
+// ===== WRITE CONTRACT ABIs =====
+const COVERED_CALL_ABI = [
+  "function writeCall(string ticker, uint256 strikePrice, uint256 expiry, uint256 collateral) external returns (uint256 optionId)"
+];
+const CASH_PUT_ABI = [
+  "function writePut(string ticker, uint256 strikePrice, uint256 expiry, uint256 collateral) external returns (uint256 optionId)"
+];
+const BINARY_ABI = [
+  "function placeBet(string ticker, bool above, uint256 strikePrice, uint256 expiry, uint256 amount) external returns (uint256 betId)"
+];
+const VAULT_WRITE_ABI = [
+  "function deposit(uint256 assets, address receiver) external returns (uint256 shares)",
+  "function withdraw(uint256 assets, address receiver, address owner) external returns (uint256 shares)"
+];
+const ERC20_ABI = [
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function balanceOf(address account) view returns (uint256)"
+];
 
 // ===== INIT RPC =====
 async function initContracts(){
@@ -840,15 +862,160 @@ function hideConnect(e){
   if(!e || e.target===document.getElementById('connectOverlay'))
     document.getElementById('connectOverlay').style.display='none';
 }
-function mockConnect(name){
-  connected = true;
-  document.getElementById('connectOverlay').style.display='none';
-  const btn = document.getElementById('connectBtn');
-  btn.outerHTML = '<div class="wallet-connected"><span class="wallet-dot"></span><span style="font-family:var(--mono);font-size:12px">0x3f…a72c</span></div>';
-  document.querySelectorAll('.btn-trade').forEach(b=>{
-    b.textContent = b.textContent.replace(' → Connect Wallet','');
-  });
-  showMockPositions();
+
+async function mockConnect(name){
+  // Real wallet connection via EIP-1193
+  let ethProvider;
+  if(name === 'MetaMask'){
+    if(!window.ethereum) { showToast('MetaMask not found. Install it first.'); return; }
+    ethProvider = window.ethereum;
+  } else if(name === 'Coinbase Wallet'){
+    if(!window.ethereum?.isCoinbaseWallet && !window.coinbaseWalletExtension){
+      showToast('Coinbase Wallet not found.'); return;
+    }
+    ethProvider = window.coinbaseWalletExtension || window.ethereum;
+  } else {
+    // WalletConnect / Rabby / any injected
+    if(!window.ethereum) { showToast('No wallet detected.'); return; }
+    ethProvider = window.ethereum;
+  }
+
+  try {
+    const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+    if(!accounts || accounts.length === 0) return;
+
+    walletAddress = accounts[0];
+    connected = true;
+    signer = await (new ethers.BrowserProvider(ethProvider)).getSigner();
+
+    // Switch/add Robinhood Chain (4663)
+    try {
+      await ethProvider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x123B' }] // 4663 in hex
+      });
+    } catch(switchErr){
+      if(switchErr.code === 4902){
+        await ethProvider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: '0x123B',
+            chainName: 'Robinhood Chain',
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            rpcUrls: ['https://rpc.mainnet.chain.robinhood.com'],
+            blockExplorerUrls: ['https://explorer.robinhood.com']
+          }]
+        });
+      }
+    }
+
+    document.getElementById('connectOverlay').style.display='none';
+    const short = walletAddress.slice(0,6)+'…'+walletAddress.slice(-4);
+    const btn = document.getElementById('connectBtn');
+    btn.outerHTML = `<div class="wallet-connected"><span class="wallet-dot"></span><span style="font-family:var(--mono);font-size:12px">${short}</span></div>`;
+    document.querySelectorAll('.btn-trade').forEach(b=>{
+      b.textContent = b.textContent.replace(' → Connect Wallet','');
+    });
+    showToast('Wallet connected');
+  } catch(err){
+    if(err.code === 4001) showToast('Connection rejected.');
+    else showToast('Connection failed: ' + (err.message||err));
+  }
+}
+
+function showToast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2800);
+}
+
+// ===== APPROVE + TRADE =====
+async function ensureApproval(spender, amount){
+  const usdg = new ethers.Contract(window.XSTOCKFI.contracts.usdg, ERC20_ABI, signer);
+  const allowance = await usdg.allowance(walletAddress, spender);
+  if(allowance < amount){
+    showToast('Approving USDG…');
+    const tx = await usdg.approve(spender, ethers.MaxUint256);
+    await tx.wait();
+  }
+}
+
+async function executeTrade(){
+  if(!connected){ showConnect(); return; }
+  const prod = activeProd;
+
+  try {
+    if(prod === 'write' || prod === 'put'){
+      const ticker = selectedMkt.t;
+      const strikeRaw = parseFloat(document.getElementById('strikeInput').value||0);
+      const collateralRaw = parseFloat(document.getElementById('collateralInput').value||500);
+      const strike = ethers.parseUnits(strikeRaw.toFixed(18), 18);
+      const collateral = ethers.parseUnits(collateralRaw.toFixed(18), 18);
+      // pick expiry from active button
+      const expiryBtn = document.querySelector('#formWrite .expiry-btn.active, #formBinary .expiry-btn.active');
+      const expiryDays = expiryBtn ? parseInt(expiryBtn.textContent)||7 : 7;
+      const expiry = BigInt(Math.floor(Date.now()/1000) + expiryDays * 86400);
+
+      if(prod === 'write'){
+        const addr = window.XSTOCKFI.contracts.coveredCall;
+        await ensureApproval(addr, collateral);
+        showToast('Submitting covered call…');
+        const c = new ethers.Contract(addr, COVERED_CALL_ABI, signer);
+        const tx = await c.writeCall(ticker, strike, expiry, collateral);
+        showToast('Pending…');
+        await tx.wait();
+        showToast('✓ Covered call written!');
+      } else {
+        const addr = window.XSTOCKFI.contracts.cashSecuredPut;
+        await ensureApproval(addr, collateral);
+        showToast('Submitting cash-secured put…');
+        const c = new ethers.Contract(addr, CASH_PUT_ABI, signer);
+        const tx = await c.writePut(ticker, strike, expiry, collateral);
+        showToast('Pending…');
+        await tx.wait();
+        showToast('✓ Cash-secured put written!');
+      }
+
+    } else if(prod === 'binary'){
+      if(!binaryDir){ showToast('Select ABOVE or BELOW first.'); return; }
+      const ticker = selectedMkt.t;
+      const strikeRaw = parseFloat(document.getElementById('binStrike').value||0);
+      const amountRaw = parseFloat(document.getElementById('binSize').value||100);
+      const strike = ethers.parseUnits(strikeRaw.toFixed(18), 18);
+      const amount = ethers.parseUnits(amountRaw.toFixed(18), 18);
+      const expiryBtn = document.querySelector('#formBinary .expiry-btn.active');
+      const expiryDays = expiryBtn ? parseInt(expiryBtn.textContent)||1 : 1;
+      const expiry = BigInt(Math.floor(Date.now()/1000) + expiryDays * 86400);
+      const above = binaryDir === 'up';
+      const addr = window.XSTOCKFI.contracts.binaryOption;
+      await ensureApproval(addr, amount);
+      showToast('Placing binary bet…');
+      const c = new ethers.Contract(addr, BINARY_ABI, signer);
+      const tx = await c.placeBet(ticker, above, strike, expiry, amount);
+      showToast('Pending…');
+      await tx.wait();
+      showToast('✓ Bet placed!');
+
+    } else if(prod === 'vault'){
+      const amountRaw = parseFloat(document.getElementById('vaultDepositInput')?.value||100);
+      const amount = ethers.parseUnits(amountRaw.toFixed(18), 18);
+      const addr = window.XSTOCKFI.contracts.yieldVault;
+      await ensureApproval(addr, amount);
+      showToast('Depositing to vault…');
+      const c = new ethers.Contract(addr, VAULT_WRITE_ABI, signer);
+      const tx = await c.deposit(amount, walletAddress);
+      showToast('Pending…');
+      await tx.wait();
+      showToast('✓ Deposited to vault!');
+      await fetchVaultStats();
+    }
+  } catch(err){
+    if(err.code === 4001 || err.code === 'ACTION_REJECTED') showToast('Transaction rejected.');
+    else showToast('Error: ' + (err.reason || err.message || 'unknown'));
+    console.error(err);
+  }
 }
 
 function showMockPositions(){
