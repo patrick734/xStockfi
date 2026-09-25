@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Docs · xStockFi</title>
+<meta name="description" content="xStockFi documentation — how the protocol works, products, settlement, and smart contracts.">
+<meta name="theme-color" content="#18191c">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    color-scheme:dark;
+    --char:#18191c;--char-2:#1f2126;--panel:#22252c;
+    --ink:#f2f4f8;--ink-2:#c9cfda;--muted:#8a92a2;
+    --accent:#7c3aff;--accent-hi:#a78bfa;
+    --line:rgba(255,255,255,.1);
+    --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+    --body:"Geist","Helvetica Neue",Arial,sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+    --gut:clamp(16px,4vw,48px);--max:1180px;--sidebar:240px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--char);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none}
+
+  /* header */
+  header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px var(--gut);border-bottom:1px solid var(--line);background:rgba(24,25,28,.9);backdrop-filter:blur(12px);}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em}
+  .brand svg{width:28px;height:28px}
+  .brand .x{color:var(--accent-hi)}
+  .cta{display:inline-flex;align-items:center;gap:8px;font:500 14px/1 var(--body);color:#fff;padding:10px 20px;border-radius:999px;background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);box-shadow:0 0 0 1px rgba(255,255,255,.14) inset;}
+
+  /* layout */
+  .layout{display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:calc(100svh - 57px);}
+
+  /* sidebar */
+  nav.sidebar{border-right:1px solid var(--line);padding:32px 24px;position:sticky;top:57px;height:calc(100svh - 57px);overflow-y:auto;}
+  .nav-section{margin-bottom:28px;}
+  .nav-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;padding:0 8px;}
+  .nav-link{display:block;padding:7px 10px;border-radius:8px;font-size:14px;color:var(--ink-2);transition:background .15s,color .15s;}
+  .nav-link:hover{background:rgba(255,255,255,.06);color:var(--ink)}
+  .nav-link.active{background:rgba(124,58,255,.15);color:var(--accent-hi)}
+
+  /* content */
+  article{padding:48px clamp(24px,4vw,64px);max-width:760px;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-hi);margin:0 0 12px;}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,4vw,52px);letter-spacing:-.035em;line-height:1.02;margin:0 0 20px;}
+  h2{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:-.025em;margin:52px 0 16px;padding-top:52px;border-top:1px solid var(--line);}
+  h2:first-of-type{margin-top:40px}
+  h3{font-family:var(--display);font-weight:500;font-size:20px;letter-spacing:-.015em;margin:28px 0 10px;}
+  p{color:var(--ink-2);margin:0 0 18px;max-width:68ch;}
+  p:last-child{margin-bottom:0}
+  ul,ol{color:var(--ink-2);margin:0 0 18px;padding-left:24px;}
+  li{margin-bottom:8px;}
+  code{font-family:var(--mono);font-size:13px;background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:5px;padding:2px 6px;}
+  pre{background:var(--char-2);border:1px solid var(--line);border-radius:12px;padding:20px 24px;overflow-x:auto;margin:0 0 18px;}
+  pre code{background:none;border:none;padding:0;font-size:13px;line-height:1.7;}
+  .callout{background:rgba(124,58,255,.1);border:1px solid rgba(167,139,250,.25);border-radius:12px;padding:16px 20px;margin:0 0 18px;}
+  .callout p{color:var(--ink-2);margin:0;}
+  table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14px;}
+  th{text-align:left;padding:10px 14px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);}
+  td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--ink-2);}
+  tr:last-child td{border-bottom:0}
+
+  footer.site{padding:24px var(--gut);border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  footer a{color:var(--muted);transition:color .2s;}
+  footer a:hover{color:var(--ink)}
+  .foot-links{display:flex;gap:20px;}
+
+  @media(max-width:768px){
+    .layout{grid-template-columns:1fr}
+    nav.sidebar{display:none}
+    article{padding:32px var(--gut)}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="index.html">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c3aff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+      <path d="M4 8h10l4 8 4-8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 24h10l4-8 4 8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span><span class="x">x</span>StockFi</span>
+  </a>
+  <a class="cta" href="app.html">Launch App</a>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Documentation">
+    <div class="nav-section">
+      <p class="nav-label">Introduction</p>
+      <a class="nav-link active" href="#overview">Overview</a>
+      <a class="nav-link" href="#how-it-works">How it works</a>
+      <a class="nav-link" href="#getting-started">Getting started</a>
+    </div>
+    <div class="nav-section">
+      <p class="nav-label">Products</p>
+      <a class="nav-link" href="#covered-calls">Covered Calls</a>
+      <a class="nav-link" href="#cash-secured-puts">Cash-Secured Puts</a>
+      <a class="nav-link" href="#binary-options">Binary Options</a>
+      <a class="nav-link" href="#yield-vault">Yield Vault</a>
+    </div>
+    <div class="nav-section">
+      <p class="nav-label">Protocol</p>
+      <a class="nav-link" href="#settlement">Settlement</a>
+      <a class="nav-link" href="#oracles">Oracles</a>
+      <a class="nav-link" href="#fees">Fees</a>
+      <a class="nav-link" href="#contracts">Contracts</a>
+    </div>
+    <div class="nav-section">
+      <p class="nav-label">Markets</p>
+      <a class="nav-link" href="#markets">Market list</a>
+    </div>
+  </nav>
+
+  <article>
+    <p class="kicker">Documentation</p>
+    <h1>xStockFi Protocol</h1>
+    <p>xStockFi is an on-chain options protocol that lets you trade covered calls, cash-secured puts, binary options, and yield strategies on 25+ tokenized stocks — directly from your wallet, with no KYC and no brokerage account.</p>
+
+    <div class="callout">
+      <p>⚡ xStockFi is in active development. Some details may change before mainnet launch.</p>
+    </div>
+
+    <h2 id="overview">Overview</h2>
+    <p>Traditional options require a brokerage account, margin approval, and trust in a centralized counterparty. xStockFi removes all of that. Every option on xStockFi is a smart contract on Robinhood Chain. Collateral is locked on-chain, settlement is automatic, and payouts are trustless.</p>
+    <p>Prices are sourced from Chainlink oracles that update every 30 seconds. At expiry, the settlement price is pulled from the oracle and applied to all positions in the same transaction. No human intervention required.</p>
+
+    <h2 id="how-it-works">How it works</h2>
+    <h3>Writers and buyers</h3>
+    <p>Options markets have two sides: writers (sellers) who provide collateral and earn premium, and buyers who pay premium for the right to a payout.</p>
+    <ul>
+      <li><strong>Writers</strong> lock collateral (stock tokens for calls, USDG for puts) and receive premium upfront.</li>
+      <li><strong>Buyers</strong> pay premium and receive a payout if the option expires in-the-money.</li>
+    </ul>
+    <h3>Lifecycle</h3>
+    <ol>
+      <li>Writer creates an option, locks collateral, sets strike and expiry.</li>
+      <li>Buyer purchases the option and pays premium to the writer.</li>
+      <li>At expiry, the Chainlink oracle delivers the final price on-chain.</li>
+      <li>Settlement runs automatically — in-the-money options pay out, out-of-the-money options return collateral to the writer.</li>
+    </ol>
+
+    <h2 id="getting-started">Getting started</h2>
+    <ol>
+      <li>Connect an OKX Wallet or any EIP-1193 compatible wallet to Robinhood Chain (ID 4663).</li>
+      <li>Bridge or deposit USDG into your wallet.</li>
+      <li>Open the app, select a product type and market, and place your trade.</li>
+    </ol>
+    <div class="callout">
+      <p>No account creation, no email, no KYC. Your wallet is your identity.</p>
+    </div>
+
+    <h2 id="covered-calls">Covered Calls</h2>
+    <p>A covered call lets you earn premium income on stock tokens you hold. You lock your stock tokens as collateral, set a strike price above the current price, and sell the call. The buyer pays you premium upfront.</p>
+    <ul>
+      <li>If the stock expires <strong>below</strong> your strike, you keep the premium and your stock tokens are returned.</li>
+      <li>If the stock expires <strong>above</strong> your strike, the buyer receives the difference and you keep the premium.</li>
+    </ul>
+    <p>Covered calls are ideal for generating yield on a long position you plan to hold.</p>
+
+    <h2 id="cash-secured-puts">Cash-Secured Puts</h2>
+    <p>A cash-secured put lets you earn premium by agreeing to buy a stock at a lower price. You lock USDG equal to the strike value as collateral, and sell the put. The buyer pays you premium upfront.</p>
+    <ul>
+      <li>If the stock expires <strong>above</strong> your strike, you keep the premium and your USDG is returned.</li>
+      <li>If the stock expires <strong>below</strong> your strike, you buy the stock at the strike price (funded by your locked USDG) and keep the premium.</li>
+    </ul>
+    <p>Cash-secured puts are a way to get paid to wait for a stock to reach your target buy price.</p>
+
+    <h2 id="binary-options">Binary Options</h2>
+    <p>Binary options are the simplest product on xStockFi. You pick a direction (up or down) and an expiry. If the stock is on your side at expiry, you receive close to 2× your stake. If not, you lose your stake.</p>
+    <ul>
+      <li><strong>Up binary:</strong> pays out if the stock price at expiry is higher than when you entered.</li>
+      <li><strong>Down binary:</strong> pays out if the stock price at expiry is lower than when you entered.</li>
+    </ul>
+    <p>The protocol fee is taken from the payout pool, so the net payout is slightly below 2×.</p>
+
+    <h2 id="yield-vault">Yield Vault</h2>
+    <p>The Yield Vault automates covered call writing. Deposit USDG into the vault and the protocol writes covered calls on your behalf at regular intervals, collecting premiums and compounding them back into your balance.</p>
+    <ul>
+      <li>No active management required — the vault handles strike selection and timing.</li>
+      <li>Premiums compound automatically into your vault share.</li>
+      <li>Withdraw your USDG plus accrued yield at any time (subject to the current epoch).</li>
+    </ul>
+
+    <h2 id="settlement">Settlement</h2>
+    <p>All xStockFi positions settle to the Chainlink oracle price at the time of expiry. Settlement is fully automated and runs on-chain in a single transaction — no manual trigger needed from users.</p>
+    <p>For binary options, the entry price is snapshotted from the oracle at purchase time. For standard options, settlement uses the oracle price at the exact expiry timestamp.</p>
+
+    <h2 id="oracles">Oracles</h2>
+    <p>xStockFi uses <strong>Chainlink price feeds</strong> on Robinhood Chain for all market prices. Feeds update every 30 seconds with a 0.1% deviation trigger — meaning the price on-chain is always within 0.1% of the real market price, or updated immediately if it moves more than that.</p>
+    <p>A separate oracle reader contract aggregates and caches the latest prices for efficient on-chain access.</p>
+    <table>
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Provider</td><td>Chainlink</td></tr>
+        <tr><td>Update frequency</td><td>30 seconds</td></tr>
+        <tr><td>Deviation threshold</td><td>0.1%</td></tr>
+        <tr><td>Network</td><td>Robinhood Chain (ID 4663)</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="fees">Fees</h2>
+    <table>
+      <thead><tr><th>Fee type</th><th>Amount</th><th>Who pays</th></tr></thead>
+      <tbody>
+        <tr><td>Protocol fee</td><td>0.5%</td><td>Deducted from payout at settlement</td></tr>
+        <tr><td>Gas</td><td>Network gas</td><td>User pays on each transaction</td></tr>
+      </tbody>
+    </table>
+    <p>There are no deposit or withdrawal fees. The 0.5% protocol fee is only applied at settlement, not on open positions.</p>
+
+    <h2 id="contracts">Contracts</h2>
+    <table>
+      <thead><tr><th>Contract</th><th>Address</th></tr></thead>
+      <tbody>
+        <tr><td>Main contract</td><td><code>TBA</code></td></tr>
+        <tr><td>Oracle reader</td><td><code>TBA</code></td></tr>
+        <tr><td>Yield vault</td><td><code>TBA</code></td></tr>
+      </tbody>
+    </table>
+    <p>All contracts are deployed on Robinhood Chain (chain ID 4663). Source code will be verified on the block explorer at launch.</p>
+
+    <h2 id="markets">Market list</h2>
+    <p>xStockFi supports options on the following tokenized stocks at launch. All prices are sourced from Chainlink oracles.</p>
+    <table>
+      <thead><tr><th>Ticker</th><th>Name</th></tr></thead>
+      <tbody id="mkt-table"></tbody>
+    </table>
+  </article>
+</div>
+
+<footer class="site">
+  <span>© <span id="yr"></span> xStockFi</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="index.html">Home</a>
+    <a href="markets.html">Markets</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a>
+  </nav>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const MARKETS = [
+  ['NVDA','NVIDIA'],['AAPL','Apple'],['TSLA','Tesla'],['AMZN','Amazon'],
+  ['MSFT','Microsoft'],['GOOGL','Alphabet'],['META','Meta'],['AMD','AMD'],
+  ['PLTR','Palantir'],['GME','GameStop'],['QQQ','QQQ ETF'],['SPY','S&P 500 ETF'],
+  ['NFLX','Netflix'],['COIN','Coinbase'],['HOOD','Robinhood'],['MSTR','MicroStrategy'],
+  ['SHOP','Shopify'],['SQ','Block'],['PYPL','PayPal'],['INTC','Intel'],
+  ['BABA','Alibaba'],['NIO','NIO'],['SNOW','Snowflake'],['RBLX','Roblox'],
+  ['UBER','Uber'],['LYFT','Lyft']
+];
+document.getElementById('mkt-table').innerHTML = MARKETS.map(([t,n])=>`<tr><td><code>${t}</code></td><td>${n}</td></tr>`).join('');
+
+// highlight active nav link on scroll
+const sections = document.querySelectorAll('article [id]');
+const links = document.querySelectorAll('nav.sidebar .nav-link');
+const obs = new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){ links.forEach(l=>l.classList.remove('active')); const a=document.querySelector(`nav.sidebar a[href="#${e.target.id}"]`); if(a) a.classList.add('active'); } });
+},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

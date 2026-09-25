@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Markets · xStockFi</title>
+<meta name="description" content="xStockFi markets — trade options on 25+ tokenized stocks with Chainlink oracle settlement.">
+<meta name="theme-color" content="#18191c">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    color-scheme:dark;
+    --char:#18191c;--char-2:#1f2126;--panel:#22252c;
+    --ink:#f2f4f8;--ink-2:#c9cfda;--muted:#8a92a2;
+    --accent:#7c3aff;--accent-hi:#a78bfa;
+    --line:rgba(255,255,255,.1);
+    --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+    --body:"Geist","Helvetica Neue",Arial,sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+    --gut:clamp(16px,4vw,48px);--max:1180px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--char);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100svh;display:flex;flex-direction:column;}
+  a{color:inherit;text-decoration:none}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px var(--gut);border-bottom:1px solid var(--line);}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em}
+  .brand svg{width:28px;height:28px}
+  .brand .x{color:var(--accent-hi)}
+  nav.top{display:flex;gap:20px;align-items:center;font-size:14px}
+  nav.top a{color:var(--ink-2);transition:color .2s}
+  nav.top a:hover{color:var(--ink)}
+  .cta{display:inline-flex;padding:10px 20px;border-radius:999px;background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);color:#fff;font:500 14px/1 var(--body);box-shadow:0 0 0 1px rgba(255,255,255,.14) inset;}
+
+  .page-head{padding:clamp(48px,8vw,96px) var(--gut) clamp(32px,5vw,56px);max-width:var(--max);margin-inline:auto;width:100%;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-hi);margin:0 0 14px;}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,5vw,60px);letter-spacing:-.04em;line-height:1;margin:0 0 16px;}
+  .sub{color:var(--ink-2);font-size:18px;margin:0;max-width:52ch;}
+
+  .filters{padding:0 var(--gut) 32px;max-width:var(--max);margin-inline:auto;width:100%;display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-btn{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--ink-2);cursor:pointer;transition:all .2s;}
+  .filter-btn:hover{border-color:rgba(255,255,255,.25);color:var(--ink)}
+  .filter-btn.active{background:rgba(124,58,255,.2);border-color:rgba(167,139,250,.4);color:var(--accent-hi)}
+
+  .markets-wrap{flex:1;padding:0 var(--gut) 80px;max-width:var(--max);margin-inline:auto;width:100%;}
+  .section-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:48px;}
+  .card{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px;border-radius:14px;border:1px solid var(--line);
+    background:var(--panel);transition:border-color .2s,background .2s;cursor:pointer;
+  }
+  .card:hover{border-color:rgba(167,139,250,.3);background:#252830}
+  .card-left{display:flex;align-items:center;gap:14px;}
+  .ticker-badge{font-family:var(--mono);font-size:12px;color:var(--accent-hi);border:1px solid rgba(167,139,250,.3);border-radius:7px;padding:4px 9px;min-width:44px;text-align:center;}
+  .card-name{font-size:15px;font-weight:500;}
+  .card-type{font-size:12px;color:var(--muted);margin-top:2px;}
+  .card-products{display:flex;gap:5px;}
+  .prod-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.6;}
+  .prod-dot.active{opacity:1;box-shadow:0 0 6px var(--accent);}
+
+  .stats-bar{display:flex;flex-wrap:wrap;gap:24px 48px;padding:24px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:40px;}
+  .stat{display:grid;gap:4px;}
+  .stat b{font-family:var(--display);font-size:28px;font-weight:500;letter-spacing:-.02em;}
+  .stat span{color:var(--muted);font-size:13px;}
+
+  footer.site{padding:24px var(--gut);border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  footer a{color:var(--muted);transition:color .2s;}
+  footer a:hover{color:var(--ink)}
+  .foot-links{display:flex;gap:20px;}
+
+  @media(max-width:640px){
+    nav.top a:not(.cta){display:none}
+    .grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="index.html">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c3aff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+      <path d="M4 8h10l4 8 4-8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 24h10l4-8 4 8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span><span class="x">x</span>StockFi</span>
+  </a>
+  <nav class="top" aria-label="Main">
+    <a href="index.html">Home</a>
+    <a href="docs.html">Docs</a>
+    <a class="cta" href="app.html">Launch App</a>
+  </nav>
+</header>
+
+<div class="page-head">
+  <p class="kicker">Markets</p>
+  <h1>25+ tokenized stocks.</h1>
+  <p class="sub">Options on the world's most traded stocks, settled on-chain to Chainlink oracle prices. 24/5 trading, 30-second price updates.</p>
+</div>
+
+<div style="padding:0 var(--gut) 32px;max-width:var(--max);margin-inline:auto;width:100%;">
+  <div class="stats-bar">
+    <div class="stat"><b>26</b><span>markets at launch</span></div>
+    <div class="stat"><b>4</b><span>product types</span></div>
+    <div class="stat"><b>30s</b><span>Chainlink price updates</span></div>
+    <div class="stat"><b>0.5%</b><span>protocol fee</span></div>
+  </div>
+</div>
+
+<div class="filters" role="group" aria-label="Filter markets">
+  <button class="filter-btn active" data-filter="all">All markets</button>
+  <button class="filter-btn" data-filter="tech">Tech</button>
+  <button class="filter-btn" data-filter="etf">ETFs</button>
+  <button class="filter-btn" data-filter="crypto">Crypto-adjacent</button>
+  <button class="filter-btn" data-filter="other">Other</button>
+</div>
+
+<div class="markets-wrap">
+  <p class="section-label">Stocks &amp; ETFs — Chainlink oracle settlement</p>
+  <div class="grid" id="mkt-grid"></div>
+</div>
+
+<footer class="site">
+  <span>© <span id="yr"></span> xStockFi</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="index.html">Home</a>
+    <a href="docs.html">Docs</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a>
+  </nav>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const MARKETS = [
+  {t:'NVDA', n:'NVIDIA',        cat:'tech'},
+  {t:'AAPL', n:'Apple',         cat:'tech'},
+  {t:'TSLA', n:'Tesla',         cat:'tech'},
+  {t:'AMZN', n:'Amazon',        cat:'tech'},
+  {t:'MSFT', n:'Microsoft',     cat:'tech'},
+  {t:'GOOGL',n:'Alphabet',      cat:'tech'},
+  {t:'META', n:'Meta',          cat:'tech'},
+  {t:'AMD',  n:'AMD',           cat:'tech'},
+  {t:'INTC', n:'Intel',         cat:'tech'},
+  {t:'SHOP', n:'Shopify',       cat:'tech'},
+  {t:'SNOW', n:'Snowflake',     cat:'tech'},
+  {t:'RBLX', n:'Roblox',        cat:'tech'},
+  {t:'NFLX', n:'Netflix',       cat:'tech'},
+  {t:'UBER', n:'Uber',          cat:'other'},
+  {t:'LYFT', n:'Lyft',          cat:'other'},
+  {t:'PYPL', n:'PayPal',        cat:'other'},
+  {t:'SQ',   n:'Block',         cat:'crypto'},
+  {t:'COIN', n:'Coinbase',      cat:'crypto'},
+  {t:'HOOD', n:'Robinhood',     cat:'crypto'},
+  {t:'MSTR', n:'MicroStrategy', cat:'crypto'},
+  {t:'PLTR', n:'Palantir',      cat:'other'},
+  {t:'GME',  n:'GameStop',      cat:'other'},
+  {t:'BABA', n:'Alibaba',       cat:'other'},
+  {t:'NIO',  n:'NIO',           cat:'other'},
+  {t:'QQQ',  n:'QQQ ETF',       cat:'etf'},
+  {t:'SPY',  n:'S&P 500 ETF',   cat:'etf'},
+];
+
+function renderGrid(filter){
+  const filtered = filter === 'all' ? MARKETS : MARKETS.filter(m=>m.cat===filter);
+  document.getElementById('mkt-grid').innerHTML = filtered.map(m=>`
+    <div class="card" data-cat="${m.cat}">
+      <div class="card-left">
+        <span class="ticker-badge">${m.t}</span>
+        <div>
+          <div class="card-name">${m.n}</div>
+          <div class="card-type">Calls · Puts · Binary · Vault</div>
+        </div>
+      </div>
+      <div class="card-products">
+        <div class="prod-dot active" title="Covered calls"></div>
+        <div class="prod-dot active" title="Puts"></div>
+        <div class="prod-dot active" title="Binary"></div>
+        <div class="prod-dot active" title="Vault"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+renderGrid('all');
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid(btn.dataset.filter);
+  });
+});
+</script>
+</body>
+</html>

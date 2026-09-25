@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>xStockFi</title>
+<meta name="description" content="xStockFi: on-chain options on tokenized stocks. Trade covered calls, puts, and binary options on 25+ global stocks from one wallet.">
+<meta property="og:title" content="xStockFi">
+<meta property="og:description" content="Options on tokenized stocks. On-chain.">
+<meta property="og:image" content="https://xstockfi.com/assets/og.png">
+<meta property="og:url" content="https://xstockfi.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#18191c">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    color-scheme: dark;
+    --slate:#3a4557;
+    --slate-2:#2b3240;
+    --char:#18191c;
+    --char-2:#1f2126;
+    --panel:#22252c;
+    --ink:#f2f4f8;
+    --ink-2:#c9cfda;
+    --muted:#8a92a2;
+    --accent:#7c3aff;
+    --accent-hi:#a78bfa;
+    --accent-2:#2f5bff;
+    --line:rgba(255,255,255,.1);
+    --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --body:"Geist", "Helvetica Neue", Arial, sans-serif;
+    --mono:"Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --gut:clamp(16px,4vw,48px);
+    --max:1180px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--char);color:var(--ink);
+    font-family:var(--body);font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--accent-hi);outline-offset:3px;border-radius:4px}
+
+  /* ============ HERO ============ */
+  .hero{
+    position:relative;isolation:isolate;overflow:hidden;
+    min-height:100svh;display:flex;flex-direction:column;
+    padding-inline:var(--gut);
+    background:linear-gradient(180deg,#2a1f4a 0%,#1e1a38 38%,#1c1b2e 74%,var(--char) 100%);
+  }
+  .glow{position:absolute;inset:0;pointer-events:none;z-index:-2;overflow:hidden}
+  .glow::before{
+    content:"";position:absolute;width:62vmax;height:62vmax;right:-14vmax;top:-30vmax;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(124,58,255,.5),rgba(124,58,255,0));
+    filter:blur(30px);animation:drift 22s ease-in-out infinite alternate;
+  }
+  .glow::after{
+    content:"";position:absolute;width:40vmax;height:40vmax;left:-10vmax;bottom:-10vmax;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(47,91,255,.3),rgba(47,91,255,0));
+    filter:blur(40px);
+  }
+  .grain::after{
+    content:"";position:absolute;inset:0;opacity:.08;mix-blend-mode:overlay;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  @keyframes drift{to{transform:translate(-10vmax,8vmax) scale(1.1)}}
+  #ring{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:0;transition:opacity 1.6s ease}
+  #ring.on{opacity:1}
+
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding-block:calc(env(safe-area-inset-top,0px) + 20px) 0;
+    width:100%;max-width:var(--max);margin-inline:auto;
+  }
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em}
+  .brand svg{width:28px;height:28px}
+  .brand .x{color:var(--accent-hi)}
+  .nav{display:flex;gap:24px;align-items:center}
+  .nav a{color:var(--ink-2);text-decoration:none;font-size:14px}
+  .nav a:hover{color:var(--ink)}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:7px 14px;background:rgba(255,255,255,.05)}
+  .nav .chip{color:var(--ink)}
+
+  .hero main{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:18px;padding-block:72px 56px;
+  }
+  .hero main p,.hero h1{text-shadow:0 1px 18px rgba(12,14,20,.55)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:0}
+  h1{font-family:var(--display);font-weight:700;margin:0;font-size:clamp(52px,9vw,112px);line-height:.95;letter-spacing:-.045em;text-wrap:balance}
+  .name{background:linear-gradient(100deg,var(--accent) 10%,#9d6eff 55%,var(--accent-hi) 110%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{margin:6px 0 0;font-size:clamp(18px,2vw,21px);max-width:36ch;line-height:1.4;text-wrap:balance}
+  .hero .body{margin:0;font-size:17px;color:var(--ink-2);max-width:48ch;text-wrap:balance}
+  .fine{margin:0;font-size:13px;color:#9aa2b2;max-width:60ch;text-wrap:balance}
+  .cta{
+    display:inline-flex;align-items:center;gap:10px;
+    font:500 15px/1 var(--body);color:#fff;text-decoration:none;
+    padding:14px 26px;border-radius:999px;
+    background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
+    box-shadow:0 0 0 1px rgba(255,255,255,.14) inset,0 10px 34px -8px rgba(124,58,255,.75);
+    transition:transform .2s ease,box-shadow .2s ease;
+  }
+  .hero .cta{margin-top:14px}
+  .cta:hover{transform:translateY(-1px);box-shadow:0 0 0 1px rgba(255,255,255,.2) inset,0 14px 44px -8px rgba(124,58,255,.9)}
+  .cta svg{width:16px;height:16px;transition:transform .2s ease}
+  .cta:hover svg{transform:translateX(3px)}
+  .cta-ghost{
+    display:inline-flex;align-items:center;gap:8px;
+    font:500 15px/1 var(--body);color:var(--ink-2);text-decoration:none;
+    padding:14px 24px;border-radius:999px;border:1px solid var(--line);
+    background:rgba(255,255,255,.04);
+    transition:border-color .2s,color .2s;
+  }
+  .cta-ghost:hover{border-color:rgba(255,255,255,.25);color:var(--ink)}
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+
+  .hero-foot{
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;
+    padding-block:0 24px;width:100%;max-width:var(--max);margin-inline:auto;
+  }
+  .badge{justify-self:start;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--accent-hi);
+    border:1px solid rgba(167,139,250,.4);border-radius:999px;padding:6px 12px;display:inline-flex;gap:8px;align-items:center;
+    background:transparent;cursor:pointer;max-width:100%;overflow:hidden}
+  .badge i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 8px var(--accent-hi);animation:pulse 2.4s ease-in-out infinite}
+  .badge .sep{opacity:.5}
+  .badge .addr{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @keyframes pulse{50%{opacity:.35}}
+  .feats{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 26px;margin:0;padding:0;list-style:none}
+  .feats li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);white-space:nowrap}
+  .feats li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+  .rise{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
+  .d1{animation-delay:.05s}.d2{animation-delay:.15s}.d3{animation-delay:.25s}.d4{animation-delay:.35s}.d5{animation-delay:.45s}
+  @keyframes rise{from{transform:translateY(14px);opacity:.001}to{transform:none;opacity:1}}
+
+  /* ============ SECTIONS ============ */
+  .wrap{width:100%;max-width:var(--max);margin-inline:auto}
+  section.band{padding-inline:var(--gut);padding-block:clamp(72px,10vw,128px)}
+  section.band + section.band{border-top:1px solid var(--line)}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-hi);margin:0 0 18px}
+  h2{font-family:var(--display);font-weight:700;letter-spacing:-.035em;line-height:1.02;margin:0;font-size:clamp(34px,5vw,60px);text-wrap:balance}
+  h3{font-family:var(--display);font-weight:500;letter-spacing:-.02em;line-height:1.15;margin:0;font-size:22px}
+  .sub{color:var(--ink-2);font-size:18px;max-width:58ch;margin:0}
+  .head{display:grid;gap:18px;margin-bottom:clamp(40px,6vw,64px)}
+
+  /* about */
+  .about{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(32px,6vw,96px);align-items:end}
+  .about .copy{display:grid;gap:18px;color:var(--ink-2);font-size:17px}
+  .about .copy p{margin:0;max-width:52ch}
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:clamp(48px,7vw,80px);border-top:1px solid var(--line)}
+  .fact{padding:24px 24px 0 0;display:grid;gap:6px}
+  .fact + .fact{padding-left:24px;border-left:1px solid var(--line)}
+  .fact b{font-family:var(--display);font-weight:500;font-size:clamp(30px,4vw,44px);letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  .fact span{color:var(--muted);font-size:14px}
+
+  /* products */
+  .products{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .product{
+    padding:32px;border-radius:20px;border:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(124,58,255,.08),rgba(124,58,255,0));
+    display:grid;gap:14px;align-content:start;position:relative;overflow:hidden;
+  }
+  .product::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(167,139,250,.4),transparent);
+  }
+  .product-icon{width:44px;height:44px;border-radius:12px;background:rgba(124,58,255,.2);border:1px solid rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center}
+  .product-icon svg{width:22px;height:22px;stroke:var(--accent-hi)}
+  .product h3{font-size:20px}
+  .product p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.6}
+  .product-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--accent-hi);
+    border:1px solid rgba(167,139,250,.3);border-radius:6px;padding:4px 10px;margin-top:4px}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:step;list-style:none;margin:0;padding:0}
+  .step{
+    position:relative;padding:28px;border-radius:18px;border:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0));
+    display:grid;gap:14px;align-content:start;
+  }
+  .step .n{font-family:var(--mono);font-size:12px;color:var(--accent-hi);letter-spacing:.1em}
+  .step p{margin:0;color:var(--ink-2)}
+  .step .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .tag{font-family:var(--mono);font-size:11px;color:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+
+  /* markets */
+  .mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;list-style:none;margin:0;padding:0}
+  .mkt{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;
+    background:var(--panel);border:1px solid var(--line);font-size:14px;
+  }
+  .mkt code{font-family:var(--mono);font-size:11px;color:var(--accent-hi);border:1px solid rgba(167,139,250,.3);border-radius:5px;padding:2px 6px;min-width:38px;text-align:center}
+  .mkt-note{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px;color:var(--muted);font-size:14px}
+  .mkt-note span{display:flex;align-items:center;gap:8px}
+  .mkt-note span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+  /* oracle */
+  .oracle{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(32px,6vw,80px);align-items:center}
+  .oracle .copy{display:grid;gap:20px}
+  .oracle ul{margin:0;padding:0;list-style:none;display:grid;gap:14px}
+  .oracle li{display:grid;grid-template-columns:18px 1fr;gap:12px;color:var(--ink-2)}
+  .oracle li svg{margin-top:4px}
+  .oracle-panel{border-radius:18px;border:1px solid var(--line);background:var(--char-2);padding:24px;display:grid;gap:16px}
+  .oracle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+  .oracle-row:last-child{border-bottom:0;padding-bottom:0}
+  .oracle-row span{color:var(--muted);font-size:13px}
+  .oracle-row strong{font-family:var(--mono);font-size:13px;color:var(--accent-hi)}
+  .oracle-label{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+
+  /* faq */
+  .faq{display:grid;grid-template-columns:1fr 1.6fr;gap:clamp(32px,6vw,96px)}
+  .faq details{border-top:1px solid var(--line)}
+  .faq details:last-child{border-bottom:1px solid var(--line)}
+  .faq summary{list-style:none;cursor:pointer;padding:22px 40px 22px 0;position:relative;font-size:18px;font-weight:500}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"";position:absolute;right:6px;top:50%;width:10px;height:10px;border-right:1.5px solid var(--ink-2);border-bottom:1.5px solid var(--ink-2);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+  .faq details[open] summary::after{transform:translateY(-30%) rotate(225deg)}
+  .faq details p{margin:0 0 22px;color:var(--ink-2);max-width:62ch}
+
+  /* closing */
+  .closing{text-align:center;display:grid;justify-items:center;gap:22px;position:relative;overflow:hidden}
+  .closing::before{content:"";position:absolute;left:50%;top:10%;width:70vmin;height:70vmin;transform:translateX(-50%);border-radius:50%;
+    background:radial-gradient(closest-side,rgba(124,58,255,.22),rgba(124,58,255,0));pointer-events:none;z-index:0}
+  .closing > *{position:relative}
+
+  footer.site{padding-inline:var(--gut);padding-block:48px calc(env(safe-area-inset-bottom,0px) + 40px);border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+  .foot-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:center}
+  .foot-links{display:flex;gap:24px;flex-wrap:wrap}
+  .foot-links a{text-decoration:none}
+  .foot-links a:hover{color:var(--ink)}
+
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);background:var(--ink);color:var(--char);padding:10px 16px;border-radius:999px;font-size:14px;z-index:20}
+
+  @media (max-width:900px){
+    .about,.oracle,.faq{grid-template-columns:1fr}
+    .products,.steps{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .nav a:not(.chip){display:none}
+    .hero main{padding-block:48px 40px;gap:14px}
+    .hero .body{font-size:16px}
+    .hero-foot{grid-template-columns:1fr;justify-items:center}
+    .badge{justify-self:center;order:2}
+    .facts{grid-template-columns:1fr}
+    .fact,.fact + .fact{padding:20px 0;border-left:0}
+    .fact + .fact{border-top:1px solid var(--line)}
+    .mkt-grid{grid-template-columns:repeat(2,1fr)}
+    .cta-row{flex-direction:column;align-items:center}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .rise,.glow::before,.badge i{animation:none}
+  }
+</style>
+
+<!-- ======================================================
+     SITE SETTINGS: edit these before you deploy
+     ====================================================== -->
+</head>
+<body>
+<script>
+  window.XSTOCKFI = {
+    appUrl:    "app.html",   // swap to "https://app.xstockfi.com" when live
+    xUrl:      "#",          // e.g. "https://x.com/xstockfi"
+    docsUrl:   "docs.html",  // swap to absolute URL after deploy
+    contract:  ""            // main contract address; empty shows "TBA"
+  };
+</script>
+
+<div class="hero grain" id="top">
+  <div class="glow" aria-hidden="true"></div>
+  <canvas id="ring" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <a class="brand" href="#top" aria-label="xStockFi home">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c3aff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+        <path d="M4 8h10l4 8 4-8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 24h10l4-8 4 8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span><span class="x">x</span>StockFi</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#products">Products</a>
+      <a href="markets.html">Markets</a>
+      <a href="#how">How it works</a>
+      <a href="#faq">FAQ</a>
+      <a data-link="docsUrl" href="docs.html">Docs</a>
+      <a class="chip" data-link="appUrl" href="app.html">Launch App</a>
+    </nav>
+  </header>
+
+  <main>
+    <p class="eyebrow rise d1">Tokenized Stocks · On-chain Options</p>
+    <h1 class="rise d2">Meet <span class="name">xStockFi</span></h1>
+    <p class="lede rise d3">Options on the world's biggest stocks. No account. No KYC.</p>
+    <p class="body rise d3">Trade covered calls, cash-secured puts, and binary bets on 25+ tokenized stocks — all settled on-chain via Chainlink oracles.</p>
+    <p class="fine rise d4">Settlement is automated and trustless. Every position expires to the oracle price.</p>
+    <div class="cta-row rise d5">
+      <a class="cta" data-link="appUrl" href="app.html">Launch App
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="cta-ghost" data-link="docsUrl" href="docs.html">View Docs</a>
+    </div>
+  </main>
+
+  <div class="hero-foot">
+    <button class="badge" id="ca" type="button" aria-label="Copy contract address"><i></i>CA <span class="sep">|</span> <span class="addr" id="ca-addr">TBA</span></button>
+    <ul class="feats">
+      <li>No KYC</li>
+      <li>Covered calls</li>
+      <li>Put options</li>
+      <li>Binary bets</li>
+      <li>25+ stocks</li>
+    </ul>
+    <div></div>
+  </div>
+</div>
+
+<!-- ================= ABOUT ================= -->
+<section class="band" id="about">
+  <div class="wrap">
+    <div class="about">
+      <div>
+        <p class="kicker">What is xStockFi</p>
+        <h2>Global stocks. Tokenized. Options. On-chain.</h2>
+      </div>
+      <div class="copy">
+        <p>xStockFi is an on-chain options protocol for tokenized stocks. Write or buy options on NVDA, AAPL, TSLA, GOOGL and 20+ more — without a brokerage account, margin account, or KYC.</p>
+        <p>Deposit a stablecoin once. Every position settles automatically to the Chainlink oracle price at expiry. No counterparty risk. No manual settlement. Just your wallet.</p>
+      </div>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>25+</b><span>tokenized stock markets</span></div>
+      <div class="fact"><b>4</b><span>product types: calls, puts, binaries, vault</span></div>
+      <div class="fact"><b>0.5%</b><span>protocol fee per trade</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRODUCTS ================= -->
+<section class="band" id="products">
+  <div class="wrap">
+    <div class="head">
+      <p class="kicker">Products</p>
+      <h2>Four ways to trade.</h2>
+      <p class="sub">From yield strategies to directional bets — pick the product that fits your view.</p>
+    </div>
+    <div class="products">
+
+      <div class="product">
+        <div class="product-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <h3>Covered Calls</h3>
+        <p>Lock your stock tokens as collateral and sell call options to earn USDG premium upfront. Collect yield on stocks you already hold.</p>
+        <span class="product-tag">Earn premium · Yield strategy</span>
+      </div>
+
+      <div class="product">
+        <div class="product-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>
+          </svg>
+        </div>
+        <h3>Cash-Secured Puts</h3>
+        <p>Lock USDG as collateral and sell put options. Earn premium now; agree to buy the stock at your chosen strike if it falls there.</p>
+        <span class="product-tag">Buy the dip · Earn income</span>
+      </div>
+
+      <div class="product">
+        <div class="product-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h3>Binary Options</h3>
+        <p>Simple directional bets. Pick up or down. If you're right at expiry, collect close to 2× your stake. Binary. On-chain. Trustless.</p>
+        <span class="product-tag">Up or down · Near 2× payout</span>
+      </div>
+
+      <div class="product">
+        <div class="product-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <h3>Yield Vault</h3>
+        <p>Deposit USDG and let the vault automatically write covered calls on your behalf. Compounding yield, no active management needed.</p>
+        <span class="product-tag">Automated · Compounding</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="head">
+      <p class="kicker">How it works</p>
+      <h2>Three steps from wallet to position.</h2>
+    </div>
+    <ol class="steps">
+      <li class="step">
+        <span class="n">STEP 01</span>
+        <h3>Connect your wallet</h3>
+        <p>Use OKX Wallet or any EIP-1193 compatible wallet. No account to create. No email. No KYC. Connect and you're in.</p>
+        <div class="tags"><span class="tag">OKX Wallet</span><span class="tag">EIP-1193</span><span class="tag">No sign-up</span></div>
+      </li>
+      <li class="step">
+        <span class="n">STEP 02</span>
+        <h3>Pick a product and market</h3>
+        <p>Choose covered call, put, binary, or vault. Then select a stock, strike price, and expiry. Your stablecoin balance covers margin across all markets.</p>
+        <div class="tags"><span class="tag">25+ stocks</span><span class="tag">Custom strikes</span><span class="tag">One balance</span></div>
+      </li>
+      <li class="step">
+        <span class="n">STEP 03</span>
+        <h3>Settle on the oracle price</h3>
+        <p>At expiry, Chainlink oracles deliver the final price on-chain. Settlement is automatic and trustless — no one can interfere.</p>
+        <div class="tags"><span class="tag">Chainlink oracles</span><span class="tag">Auto-settlement</span><span class="tag">Trustless</span></div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= MARKETS ================= -->
+<section class="band" id="markets">
+  <div class="wrap">
+    <div class="head">
+      <p class="kicker">Markets</p>
+      <h2>25+ stocks. One balance.</h2>
+      <p class="sub">Trade options on the world's most liquid tokenized stocks. Prices powered by Chainlink with 30-second updates, 24/5.</p>
+    </div>
+    <ul class="mkt-grid" id="mkt-grid"></ul>
+    <div class="mkt-note">
+      <span>24/5 trading, 30-second price updates</span>
+      <span>Chainlink oracle settlement at expiry</span>
+      <span>More markets added regularly</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ORACLE / SETTLEMENT ================= -->
+<section class="band" id="oracle">
+  <div class="wrap oracle">
+    <div class="copy">
+      <p class="kicker" style="margin:0">Settlement</p>
+      <h2>Trustless settlement. Every time.</h2>
+      <p class="sub">No one can manipulate expiry prices. Chainlink oracles deliver the final price on-chain and settlement happens automatically in the same transaction.</p>
+      <ul>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="none" stroke="#a78bfa" stroke-opacity=".5"/><path d="M5.5 9.2 8 11.5l4.5-5" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Chainlink price feeds update every 30 seconds with deviation triggers.</span>
+        </li>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="none" stroke="#a78bfa" stroke-opacity=".5"/><path d="M5.5 9.2 8 11.5l4.5-5" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>At expiry, the oracle price is pulled on-chain and positions are settled in the same call.</span>
+        </li>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="none" stroke="#a78bfa" stroke-opacity=".5"/><path d="M5.5 9.2 8 11.5l4.5-5" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Payouts are calculated and distributed immediately, with no manual intervention.</span>
+        </li>
+      </ul>
+    </div>
+    <div class="oracle-panel">
+      <p class="oracle-label">Protocol info</p>
+      <div class="oracle-row">
+        <span>Network</span>
+        <strong>Robinhood Chain · ID 4663</strong>
+      </div>
+      <div class="oracle-row">
+        <span>Oracle provider</span>
+        <strong>Chainlink</strong>
+      </div>
+      <div class="oracle-row">
+        <span>Price update</span>
+        <strong>30 seconds</strong>
+      </div>
+      <div class="oracle-row">
+        <span>Settlement</span>
+        <strong>Automated · on-chain</strong>
+      </div>
+      <div class="oracle-row">
+        <span>Protocol fee</span>
+        <strong>0.5%</strong>
+      </div>
+      <div class="oracle-row">
+        <span>Main contract</span>
+        <strong id="contract-display">TBA</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="band" id="faq">
+  <div class="wrap faq">
+    <div>
+      <p class="kicker">FAQ</p>
+      <h2>Questions, answered.</h2>
+    </div>
+    <div>
+      <details open>
+        <summary>What is an on-chain option?</summary>
+        <p>An option is a contract that gives the buyer the right — but not the obligation — to buy or sell an asset at a set price before a set date. On xStockFi, the entire lifecycle (creation, margin, expiry, settlement) runs on-chain via smart contracts. No counterparty can default and no one can freeze your funds.</p>
+      </details>
+      <details>
+        <summary>What do I need to start?</summary>
+        <p>A crypto wallet (OKX or any EIP-1193 compatible wallet) and a USDG balance. Connect your wallet, deposit USDG, and you can trade every market from that single balance. No account, no KYC, no approval wait.</p>
+      </details>
+      <details>
+        <summary>How does settlement work?</summary>
+        <p>At expiry, xStockFi fetches the final price from the Chainlink oracle on-chain and settles all positions in the same transaction. It's fully automated — you don't need to do anything at expiry.</p>
+      </details>
+      <details>
+        <summary>Do I own the underlying stocks?</summary>
+        <p>No. You hold option contracts that reference the price of tokenized stocks via Chainlink oracles. You don't own shares, you don't receive dividends, and you have no shareholder rights.</p>
+      </details>
+      <details>
+        <summary>What is the Yield Vault?</summary>
+        <p>The Yield Vault automatically writes covered calls on your USDG deposit. It collects premiums and compounds them back into your balance. You earn yield passively without picking strikes or managing expiries yourself.</p>
+      </details>
+      <details>
+        <summary>Can I lose more than I deposit?</summary>
+        <p>Your maximum loss is capped at the collateral you lock per position. You cannot lose more than what you've deposited for a given trade.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CLOSING ================= -->
+<section class="band closing">
+  <p class="kicker" style="margin:0">xStockFi</p>
+  <h2>Trade options on global stocks. On-chain.</h2>
+  <div class="cta-row">
+    <a class="cta" data-link="appUrl" href="app.html">Launch App
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="cta-ghost" data-link="xUrl" href="#">Follow on X</a>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-top">
+      <span>© <span id="yr">2026</span> xStockFi · On-chain options on tokenized stocks</span>
+      <nav class="foot-links" aria-label="Footer">
+        <a data-link="xUrl" href="#">X / Twitter</a>
+        <a href="markets.html">Markets</a>
+        <a data-link="docsUrl" href="docs.html">Docs</a>
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a class="chip" data-link="appUrl" href="app.html">Launch App</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- settings, links, contract badge ---------- */
+(function(){
+  const S = window.XSTOCKFI || {};
+  document.querySelectorAll('[data-link]').forEach(a=>{
+    const url = S[a.dataset.link];
+    if (a.dataset.link === 'docsUrl' && (!url || url === '#')) { a.hidden = true; return; }
+    if (url) a.href = url;
+    if (url && /^https?:/.test(url)) { a.target = '_blank'; a.rel = 'noopener'; }
+  });
+  const addr = (S.contract||'').trim();
+  const el = document.getElementById('ca-addr'), btn = document.getElementById('ca');
+  const cd = document.getElementById('contract-display');
+  if (addr){
+    el.textContent = addr.length > 14 ? addr.slice(0,6)+'…'+addr.slice(-4) : addr;
+    btn.title = addr;
+    if(cd) cd.textContent = addr.slice(0,8)+'…'+addr.slice(-6);
+  } else {
+    btn.disabled = true; btn.style.cursor = 'default';
+    btn.setAttribute('aria-label','Contract address to be announced');
+  }
+  btn.addEventListener('click', ()=>{
+    if(!addr) return;
+    const done = ()=>{ const t=document.createElement('div'); t.className='toast'; t.textContent='Contract address copied'; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); };
+    (navigator.clipboard ? navigator.clipboard.writeText(addr) : Promise.reject()).then(done).catch(()=>{
+      const r=document.createRange(); r.selectNodeContents(el); el.textContent=addr; const s=getSelection(); s.removeAllRanges(); s.addRange(r);
+    });
+  });
+  document.getElementById('yr').textContent = new Date().getFullYear();
+})();
+
+/* ---------- markets list ---------- */
+(function(){
+  const MARKETS = [
+    ['NVDA','NVIDIA'],['AAPL','Apple'],['TSLA','Tesla'],['AMZN','Amazon'],
+    ['MSFT','Microsoft'],['GOOGL','Alphabet'],['META','Meta'],['AMD','AMD'],
+    ['PLTR','Palantir'],['GME','GameStop'],['QQQ','QQQ ETF'],['SPY','S&P 500 ETF'],
+    ['NFLX','Netflix'],['COIN','Coinbase'],['HOOD','Robinhood'],['MSTR','MicroStrategy'],
+    ['SHOP','Shopify'],['SQ','Block'],['PYPL','PayPal'],['INTC','Intel'],
+    ['BABA','Alibaba'],['NIO','NIO'],['SNOW','Snowflake'],['RBLX','Roblox'],
+    ['UBER','Uber'],['LYFT','Lyft']
+  ];
+  const ul = document.getElementById('mkt-grid');
+  ul.innerHTML = MARKETS.map(([c,n])=>`<li class="mkt"><code>${c}</code>${n}</li>`).join('');
+})();
+</script>
+
+<script src="assets/three.min.js"></script>
+<script>
+/* ---------- hero glass ring ---------- */
+(function(){
+  const canvas = document.getElementById('ring');
+  if (!window.THREE) return;
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true}); } catch(e){ return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+  camera.position.set(0, 0, 11);
+
+  const env = new THREE.Scene();
+  env.background = new THREE.Color(0x06080c);
+  const panel = (w,h,color,intensity,pos,rot)=>{
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(intensity), side:THREE.DoubleSide}));
+    m.position.set(...pos); if(rot) m.rotation.set(...rot); env.add(m);
+  };
+  /* purple/violet light environment to match xStockFi palette */
+  panel(14, 3, 0x7c3aff, 3.0, [-6, 2, -2], [0, Math.PI/2.4, 0]);
+  panel(10, 2, 0xa78bfa, 2.0, [ 6, -1, 1], [0, -Math.PI/2.2, 0]);
+  panel(8, 8, 0xffffff, 0.40, [0, 9, 2], [Math.PI/2, 0, 0]);
+  panel(4, 0.5, 0xe0d6ff, 0.8, [2, 3, 8], [0, Math.PI, 0]);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(env, 0.04).texture;
+
+  const rim = new THREE.DirectionalLight(0x7c3aff, 2.2); rim.position.set(-4, 3, -3); scene.add(rim);
+  const key = new THREE.DirectionalLight(0xffffff, 0.22); key.position.set(3, 5, 6); scene.add(key);
+
+  const SEG = 420, RAD = 36;
+  const pos = new Float32Array((SEG+1)*(RAD+1)*3);
+  const idx = [];
+  for (let i=0;i<SEG;i++) for (let j=0;j<RAD;j++){
+    const a=i*(RAD+1)+j, b=(i+1)*(RAD+1)+j;
+    idx.push(a,b,a+1, b,b+1,a+1);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setIndex(idx);
+
+  const mat = new THREE.MeshPhysicalMaterial({
+    color:0x06030f, metalness:0.55, roughness:0.16,
+    clearcoat:1, clearcoatRoughness:0.04, reflectivity:0.9,
+    envMapIntensity:1.0, transparent:true, opacity:0.72
+  });
+  const ring = new THREE.Mesh(geo, mat);
+  const group = new THREE.Group(); group.add(ring); scene.add(group);
+
+  const RX = 3.1, RZ = 1.15;
+  const up = new THREE.Vector3(0,1,0), T = new THREE.Vector3(), N = new THREE.Vector3(), B = new THREE.Vector3();
+  const C = new THREE.Vector3(), C2 = new THREE.Vector3();
+  const center = (u,t,out)=> out.set(RX*Math.cos(u), 0.28*Math.sin(2*u + t*0.6), RZ*Math.sin(u));
+
+  function build(t){
+    const twistPhase = t*0.45;
+    for (let i=0;i<=SEG;i++){
+      const u = (i/SEG)*Math.PI*2;
+      center(u,t,C); center(u+0.001,t,C2);
+      T.subVectors(C2,C).normalize();
+      B.crossVectors(T,up).normalize();
+      N.crossVectors(B,T).normalize();
+      const th = u + twistPhase;
+      const ct=Math.cos(th), st=Math.sin(th);
+      const w = 0.24 + 0.14*Math.sin(u - t*0.35);
+      const h = 0.03 + 0.014*Math.cos(u*2 + t*0.5);
+      for (let j=0;j<=RAD;j++){
+        const v=(j/RAD)*Math.PI*2, cv=Math.cos(v)*w, sv=Math.sin(v)*h;
+        const k=(i*(RAD+1)+j)*3;
+        pos[k]   = C.x + cv*(ct*N.x+st*B.x) + sv*(-st*N.x+ct*B.x);
+        pos[k+1] = C.y + cv*(ct*N.y+st*B.y) + sv*(-st*N.y+ct*B.y);
+        pos[k+2] = C.z + cv*(ct*N.z+st*B.z) + sv*(-st*N.z+ct*B.z);
+      }
+    }
+    geo.attributes.position.needsUpdate = true;
+    geo.computeVertexNormals();
+    const n = geo.attributes.normal.array, Lm = SEG*(RAD+1)*3;
+    for (let j=0;j<=RAD;j++){ const a=j*3, b=Lm+j*3; for(let c=0;c<3;c++){ const m=(n[a+c]+n[b+c])/2; n[a+c]=n[b+c]=m; } }
+  }
+
+  const hero = canvas.parentElement;
+  function resize(){
+    const w = hero.clientWidth, h = hero.clientHeight;
+    renderer.setSize(w,h,false);
+    camera.aspect = w/h; camera.updateProjectionMatrix();
+    const s = Math.min(1, (w/h)/1.35);
+    group.scale.setScalar(Math.max(0.42, s));
+    group.position.y = -0.35;
+  }
+  window.addEventListener('resize', resize); resize();
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let mx=0, my=0;
+  window.addEventListener('pointermove', e=>{ mx=(e.clientX/window.innerWidth-.5); my=(e.clientY/window.innerHeight-.5); });
+
+  let t = 0, last = performance.now(), active = true;
+  const io = new IntersectionObserver(es=>{ active = es[0].isIntersecting; last = performance.now(); });
+  io.observe(hero);
+  document.addEventListener('visibilitychange', ()=>{ last = performance.now(); });
+
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(!active || document.hidden) return;
+    const dt = Math.min(0.05,(now-last)/1000); last = now;
+    t += dt * (reduce.matches ? 0.08 : 1);
+    build(t);
+    group.rotation.x = 0.42 + 0.10*Math.sin(t*0.31) + my*0.08;
+    group.rotation.y = 0.35*Math.sin(t*0.22) + mx*0.12;
+    group.rotation.z = -0.08 + 0.07*Math.sin(t*0.17);
+    renderer.render(scene,camera);
+  }
+  build(0); renderer.render(scene,camera);
+  canvas.classList.add('on');
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
