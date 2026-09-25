@@ -881,33 +881,42 @@ async function mockConnect(name){
   }
 
   try {
+    // Step 1: just get accounts — no chain switch yet
     const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
     if(!accounts || accounts.length === 0) return;
 
     walletAddress = accounts[0];
     connected = true;
-    signer = await (new ethers.BrowserProvider(ethProvider)).getSigner();
 
-    // Switch/add Robinhood Chain (4663)
+    // Step 2: try to switch to Robinhood Chain, but don't block connect if it fails
     try {
       await ethProvider.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x123B' }] // 4663 in hex
+        params: [{ chainId: '0x1237' }] // 4663 decimal = 0x1237
       });
     } catch(switchErr){
-      if(switchErr.code === 4902){
-        await ethProvider.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: '0x123B',
-            chainName: 'Robinhood Chain',
-            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-            rpcUrls: ['https://rpc.mainnet.chain.robinhood.com'],
-            blockExplorerUrls: ['https://explorer.robinhood.com']
-          }]
-        });
+      if(switchErr.code === 4902 || switchErr.code === -32603){
+        // Chain not added yet — add it
+        try {
+          await ethProvider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x1237',
+              chainName: 'Robinhood Chain',
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://rpc.mainnet.chain.robinhood.com'],
+              blockExplorerUrls: ['https://explorer.robinhood.com']
+            }]
+          });
+        } catch(addErr){
+          showToast('Add Robinhood Chain manually in MetaMask (Chain ID 4663)');
+        }
       }
+      // If switch fails for any other reason, still continue — wallet is connected
     }
+
+    // Step 3: get signer after chain is set
+    signer = await (new ethers.BrowserProvider(ethProvider)).getSigner();
 
     document.getElementById('connectOverlay').style.display='none';
     const short = walletAddress.slice(0,6)+'…'+walletAddress.slice(-4);
@@ -920,6 +929,7 @@ async function mockConnect(name){
   } catch(err){
     if(err.code === 4001) showToast('Connection rejected.');
     else showToast('Connection failed: ' + (err.message||err));
+    console.error('Wallet connect error:', err);
   }
 }
 
