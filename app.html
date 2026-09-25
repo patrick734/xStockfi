@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Launch App · xStockFi</title>
+<title>App · xStockFi</title>
 <meta name="description" content="xStockFi trading app — on-chain options on tokenized stocks.">
 <meta name="theme-color" content="#18191c">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -11,74 +11,298 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-  :root{
-    color-scheme:dark;
-    --char:#18191c;--char-2:#1f2126;--panel:#22252c;
-    --ink:#f2f4f8;--ink-2:#c9cfda;--muted:#8a92a2;
-    --accent:#7c3aff;--accent-hi:#a78bfa;
-    --line:rgba(255,255,255,.1);
-    --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
-    --body:"Geist","Helvetica Neue",Arial,sans-serif;
-    --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-    --gut:clamp(16px,4vw,48px);--max:1180px;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--char);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100svh;display:flex;flex-direction:column;}
-  a{color:inherit;text-decoration:none}
+:root{
+  color-scheme:dark;
+  --char:#18191c;--char-2:#1f2126;--panel:#22252c;--panel-2:#272b33;
+  --ink:#f2f4f8;--ink-2:#c9cfda;--muted:#8a92a2;--muted-2:#606878;
+  --accent:#7c3aff;--accent-hi:#a78bfa;--accent-dim:rgba(124,58,255,.18);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.15);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.15);
+  --line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.05);
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Geist","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --header-h:52px;--nav-h:44px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--char);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden;display:flex;flex-direction:column;}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--body);cursor:pointer;border:none;background:none;color:inherit;}
+input{font-family:var(--mono);border:none;outline:none;background:none;color:inherit;}
 
-  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px var(--gut);border-bottom:1px solid var(--line);}
-  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em}
-  .brand svg{width:28px;height:28px}
-  .brand .x{color:var(--accent-hi)}
-  .back{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;transition:color .2s}
-  .back:hover{color:var(--ink)}
-  .back svg{width:16px;height:16px}
+/* ===== TOP BAR ===== */
+.topbar{
+  height:var(--header-h);flex:none;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;border-bottom:1px solid var(--line);
+  background:var(--char);z-index:20;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.02em;flex:none;}
+.brand svg{width:24px;height:24px}
+.brand .x{color:var(--accent-hi)}
+.topbar-nav{display:flex;gap:2px;background:var(--panel);border-radius:8px;padding:3px;}
+.topbar-nav a{
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  padding:5px 12px;border-radius:6px;color:var(--muted);transition:all .15s;
+}
+.topbar-nav a:hover{color:var(--ink)}
+.topbar-nav a.active{background:var(--panel-2);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.topbar-right{display:flex;align-items:center;gap:10px;flex:none;}
+.chain-badge{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:5px 10px;}
+.chain-badge i{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);flex:none;animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{50%{opacity:.35}}
+.btn-connect{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;
+  background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
+  color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset;
+  transition:opacity .2s;
+}
+.btn-connect:hover{opacity:.85}
+.btn-connect svg{width:14px;height:14px}
+.wallet-connected{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:12px;}
+.wallet-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;}
 
-  main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--gut);text-align:center;gap:0;position:relative;overflow:hidden;}
-  .glow{position:absolute;inset:0;pointer-events:none;z-index:0}
-  .glow::before{content:"";position:absolute;width:60vmax;height:60vmax;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(124,58,255,.18),rgba(124,58,255,0));filter:blur(40px);}
-  .inner{position:relative;z-index:1;display:grid;gap:24px;align-items:center;justify-items:center;max-width:520px;}
+/* ===== STATS STRIP ===== */
+.stats-strip{
+  flex:none;height:34px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:0;overflow-x:auto;
+  padding:0 16px;background:var(--char-2);
+}
+.stat-item{display:flex;align-items:center;gap:8px;padding:0 16px;white-space:nowrap;font-family:var(--mono);font-size:11px;}
+.stat-item:not(:last-child){border-right:1px solid var(--line);}
+.stat-item .label{color:var(--muted)}
+.stat-item .val{color:var(--ink)}
+.stat-item .up{color:var(--green)}
 
-  .soon-badge{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-hi);border:1px solid rgba(167,139,250,.4);border-radius:999px;padding:6px 14px;display:inline-flex;align-items:center;gap:8px;}
-  .soon-badge i{width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 8px var(--accent-hi);animation:pulse 2.4s ease-in-out infinite;flex:none;}
-  @keyframes pulse{50%{opacity:.35}}
+/* ===== MAIN LAYOUT ===== */
+.app-body{flex:1;display:flex;overflow:hidden;}
 
-  h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,6vw,64px);letter-spacing:-.04em;line-height:1;margin:0;text-wrap:balance;}
-  .sub{color:var(--ink-2);font-size:18px;margin:0;max-width:42ch;text-wrap:balance;}
+/* ===== SIDEBAR: MARKETS ===== */
+.sidebar{
+  width:240px;flex:none;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--char);
+}
+.sidebar-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;}
+.sidebar-title{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.search-box{display:flex;align-items:center;gap:6px;background:var(--panel);border-radius:6px;padding:6px 10px;border:1px solid var(--line);}
+.search-box svg{width:13px;height:13px;stroke:var(--muted);flex:none;}
+.search-box input{font-size:12px;width:100%;color:var(--ink);}
+.search-box input::placeholder{color:var(--muted-2);}
+.cat-tabs{display:flex;gap:4px;}
+.cat-tab{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 8px;border-radius:4px;color:var(--muted);background:transparent;border:1px solid transparent;transition:all .15s;}
+.cat-tab:hover{color:var(--ink)}
+.cat-tab.active{background:var(--accent-dim);border-color:rgba(167,139,250,.3);color:var(--accent-hi);}
+.market-list{flex:1;overflow-y:auto;}
+.market-list::-webkit-scrollbar{width:3px}
+.market-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.mkt-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line-2);
+  transition:background .15s;
+}
+.mkt-row:hover{background:var(--panel)}
+.mkt-row.active{background:var(--accent-dim);border-left:2px solid var(--accent-hi);}
+.mkt-left{display:flex;align-items:center;gap:8px;}
+.ticker{font-family:var(--mono);font-size:12px;color:var(--ink);font-weight:500;min-width:38px;}
+.mkt-name{font-size:11px;color:var(--muted);}
+.mkt-right{text-align:right;}
+.mkt-price{font-family:var(--mono);font-size:12px;color:var(--ink);}
+.mkt-chg{font-family:var(--mono);font-size:10px;}
+.mkt-chg.up{color:var(--green)}
+.mkt-chg.dn{color:var(--red)}
 
-  .form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;}
-  .form input{
-    flex:1;min-width:220px;padding:13px 18px;border-radius:999px;border:1px solid var(--line);
-    background:rgba(255,255,255,.06);color:var(--ink);font-family:var(--body);font-size:15px;
-    outline:none;transition:border-color .2s;
-  }
-  .form input::placeholder{color:var(--muted)}
-  .form input:focus{border-color:rgba(167,139,250,.5)}
-  .form button{
-    padding:13px 26px;border-radius:999px;border:none;cursor:pointer;
-    background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
-    color:#fff;font:500 15px/1 var(--body);
-    box-shadow:0 0 0 1px rgba(255,255,255,.14) inset,0 10px 34px -8px rgba(124,58,255,.7);
-    transition:transform .2s,box-shadow .2s;
-  }
-  .form button:hover{transform:translateY(-1px);box-shadow:0 0 0 1px rgba(255,255,255,.2) inset,0 14px 44px -8px rgba(124,58,255,.9)}
+/* ===== MAIN CONTENT ===== */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
-  .note{font-size:13px;color:var(--muted);margin:0;}
-  .features{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px;margin:0;padding:0;list-style:none;}
-  .features li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);}
-  .features li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;}
+/* product tabs */
+.prod-tabs{flex:none;display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--char);}
+.prod-tab{
+  padding:10px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;
+}
+.prod-tab:hover{color:var(--ink)}
+.prod-tab.active{color:var(--accent-hi);border-bottom-color:var(--accent-hi);}
 
-  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px)+24px);transform:translateX(-50%);background:var(--ink);color:var(--char);padding:10px 16px;border-radius:999px;font-size:14px;z-index:20;}
+/* content area */
+.content-area{flex:1;display:flex;overflow:hidden;}
 
-  footer{padding:24px var(--gut);border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-  footer a{color:var(--muted);transition:color .2s;}
-  footer a:hover{color:var(--ink)}
-  .foot-links{display:flex;gap:20px;}
+/* trade panel */
+.trade-panel{flex:1;overflow-y:auto;padding:20px;}
+.trade-panel::-webkit-scrollbar{width:3px}
+.trade-panel::-webkit-scrollbar-thumb{background:var(--line)}
+
+/* market header */
+.mkt-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;}
+.mkt-header-left h2{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:2px;}
+.mkt-header-left .full-name{font-size:13px;color:var(--muted);}
+.mkt-price-big{font-family:var(--mono);font-size:28px;font-weight:500;letter-spacing:-.02em;}
+.mkt-price-chg{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.mkt-price-chg .chg{font-family:var(--mono);font-size:13px;}
+.oracle-info{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;}
+.oracle-dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex:none;}
+
+/* price chart placeholder */
+.chart-area{
+  height:160px;border-radius:10px;border:1px solid var(--line);
+  background:var(--panel);margin-bottom:20px;position:relative;overflow:hidden;
+  display:flex;align-items:flex-end;
+}
+.chart-bars{display:flex;align-items:flex-end;gap:2px;padding:12px 12px 0;width:100%;height:100%;}
+.chart-bar{flex:1;border-radius:2px 2px 0 0;min-height:4px;transition:opacity .2s;}
+.chart-bar.up{background:linear-gradient(180deg,rgba(34,197,94,.6),rgba(34,197,94,.15));}
+.chart-bar.dn{background:linear-gradient(180deg,rgba(239,68,68,.5),rgba(239,68,68,.1));}
+.chart-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.chart-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+/* order form */
+.order-form{background:var(--panel);border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:16px;}
+.order-form-head{display:flex;border-bottom:1px solid var(--line);}
+.order-side{flex:1;padding:10px;text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.order-side.buy{color:var(--green);}
+.order-side.sell{color:var(--muted);}
+.order-side.active.buy{background:var(--green-dim);color:var(--green);}
+.order-side.active.sell{background:var(--red-dim);color:var(--red);}
+.order-body{padding:16px;display:grid;gap:12px;}
+.field-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field{background:var(--char-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+.field input{font-size:14px;width:100%;}
+.field .unit{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;}
+.expiry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.expiry-btn{
+  padding:7px 4px;border-radius:6px;border:1px solid var(--line);
+  background:var(--char-2);font-family:var(--mono);font-size:11px;
+  color:var(--muted);cursor:pointer;transition:all .15s;text-align:center;
+}
+.expiry-btn:hover{border-color:rgba(167,139,250,.3);color:var(--ink)}
+.expiry-btn.active{background:var(--accent-dim);border-color:rgba(167,139,250,.4);color:var(--accent-hi);}
+.premium-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);}
+.premium-row .label{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.premium-row .val{font-family:var(--mono);font-size:13px;color:var(--ink);}
+.btn-trade{
+  width:100%;padding:13px;border-radius:8px;font-size:14px;font-weight:500;
+  background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
+  color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset,0 8px 24px -8px rgba(124,58,255,.6);
+  transition:opacity .2s,transform .2s;
+}
+.btn-trade:hover{opacity:.9;transform:translateY(-1px)}
+.btn-trade:active{transform:none}
+.btn-trade.sell-mode{background:linear-gradient(90deg,#b91c1c,#ef4444);}
+
+/* info rows */
+.info-card{background:var(--panel);border-radius:10px;border:1px solid var(--line);padding:14px;display:grid;gap:8px;margin-bottom:16px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+.info-row .k{color:var(--muted);}
+.info-row .v{font-family:var(--mono);}
+.info-row .v.accent{color:var(--accent-hi);}
+
+/* positions panel */
+.positions-panel{width:320px;flex:none;border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;background:var(--char);}
+.positions-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.positions-head h3{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.pos-count{background:var(--accent-dim);border:1px solid rgba(167,139,250,.3);color:var(--accent-hi);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:999px;}
+.positions-tabs{display:flex;border-bottom:1px solid var(--line);}
+.pos-tab{flex:1;padding:8px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.pos-tab.active{color:var(--accent-hi);border-bottom-color:var(--accent-hi);}
+.positions-list{flex:1;overflow-y:auto;padding:10px;}
+.positions-list::-webkit-scrollbar{width:3px}
+.positions-list::-webkit-scrollbar-thumb{background:var(--line)}
+.pos-card{background:var(--panel);border-radius:8px;border:1px solid var(--line);padding:12px;margin-bottom:8px;}
+.pos-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.pos-badge{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:4px;font-weight:500;}
+.pos-badge.call{background:var(--green-dim);color:var(--green);}
+.pos-badge.put{background:var(--red-dim);color:var(--red);}
+.pos-badge.binary{background:var(--accent-dim);color:var(--accent-hi);}
+.pos-badge.vault{background:rgba(234,179,8,.15);color:#eab308;}
+.pos-ticker{font-family:var(--mono);font-size:13px;font-weight:500;}
+.pos-row{display:flex;justify-content:space-between;font-size:11px;margin-top:4px;}
+.pos-row .k{color:var(--muted);}
+.pos-row .v{font-family:var(--mono);}
+.pos-row .v.pos{color:var(--green);}
+.pos-row .v.neg{color:var(--red);}
+.pos-actions{display:flex;gap:6px;margin-top:10px;}
+.pos-btn{flex:1;padding:6px;border-radius:6px;border:1px solid var(--line);background:var(--char-2);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all .15s;text-align:center;}
+.pos-btn:hover{border-color:rgba(167,139,250,.3);color:var(--ink)}
+.pos-btn.close{color:var(--red);border-color:rgba(239,68,68,.3);}
+.pos-btn.close:hover{background:var(--red-dim);}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:8px;color:var(--muted);}
+.empty-state svg{width:32px;height:32px;opacity:.4;}
+.empty-state p{font-size:12px;}
+
+/* connect overlay */
+.connect-overlay{
+  position:fixed;inset:0;z-index:100;background:rgba(12,14,18,.7);
+  backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+}
+.connect-modal{
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:28px;width:340px;max-width:calc(100vw - 32px);
+  box-shadow:0 24px 80px rgba(0,0,0,.5);
+}
+.connect-modal h2{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px;}
+.connect-modal p{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.wallet-list{display:grid;gap:8px;margin-bottom:16px;}
+.wallet-opt{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;
+  border:1px solid var(--line);background:var(--char-2);cursor:pointer;transition:all .2s;
+}
+.wallet-opt:hover{border-color:rgba(167,139,250,.4);background:var(--accent-dim);}
+.wallet-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;}
+.wallet-info{flex:1;}
+.wallet-name{font-size:14px;font-weight:500;}
+.wallet-sub{font-size:11px;color:var(--muted);}
+.modal-note{font-size:11px;color:var(--muted-2);text-align:center;}
+.modal-close{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;background:var(--char-2);}
+.modal-close:hover{color:var(--ink)}
+.connect-modal{position:relative;}
+
+/* binary section */
+.binary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.binary-card{
+  border-radius:12px;border:1px solid var(--line);padding:18px;cursor:pointer;
+  background:var(--panel);transition:all .2s;text-align:center;
+}
+.binary-card:hover{border-color:rgba(167,139,250,.3);}
+.binary-card.up-card:hover{border-color:rgba(34,197,94,.4);background:var(--green-dim);}
+.binary-card.dn-card:hover{border-color:rgba(239,68,68,.4);background:var(--red-dim);}
+.binary-card.selected-up{border-color:var(--green);background:var(--green-dim);}
+.binary-card.selected-dn{border-color:var(--red);background:var(--red-dim);}
+.binary-arrow{font-size:28px;margin-bottom:6px;}
+.binary-label{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;}
+.binary-label.up{color:var(--green)}
+.binary-label.dn{color:var(--red)}
+.binary-payout{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* vault section */
+.vault-card{background:var(--panel);border-radius:12px;border:1px solid var(--line);padding:20px;margin-bottom:16px;}
+.vault-title{font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:4px;}
+.vault-desc{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.vault-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.vault-stat b{font-family:var(--mono);font-size:16px;display:block;}
+.vault-stat span{font-size:11px;color:var(--muted);}
+.apy{color:var(--green);}
+
+/* scrollbar global */
+*::-webkit-scrollbar{width:4px;height:4px;}
+*::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+@media(max-width:900px){
+  .positions-panel{display:none}
+  .sidebar{width:200px}
+}
+@media(max-width:640px){
+  .sidebar{display:none}
+  .topbar-nav{display:none}
+}
 </style>
 </head>
 <body>
 
-<header>
+<!-- TOP BAR -->
+<header class="topbar">
   <a class="brand" href="index.html">
     <svg viewBox="0 0 32 32" aria-hidden="true">
       <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c3aff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
@@ -87,59 +311,572 @@
     </svg>
     <span><span class="x">x</span>StockFi</span>
   </a>
-  <a class="back" href="index.html">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4L6 8l4 4"/></svg>
-    Back to site
-  </a>
+
+  <nav class="topbar-nav" aria-label="App sections">
+    <a href="#" class="active" data-section="markets">MARKETS</a>
+    <a href="#" data-section="trade">TRADE</a>
+    <a href="#" data-section="binary">BINARY</a>
+    <a href="#" data-section="vault">VAULT</a>
+    <a href="#" data-section="positions">POSITIONS</a>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="chain-badge">
+      <i></i> Robinhood Chain
+    </div>
+    <button class="btn-connect" id="connectBtn">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 2h4v4M14 2l-6 6M6 4H3a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1v-3"/></svg>
+      Connect Wallet
+    </button>
+  </div>
 </header>
 
-<main>
-  <div class="glow" aria-hidden="true"></div>
-  <div class="inner">
-    <span class="soon-badge"><i></i>Coming soon</span>
-    <h1>The app is almost ready.</h1>
-    <p class="sub">xStockFi is in final testing. Drop your email and we'll notify you the moment trading goes live.</p>
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-item"><span class="label">Open Positions</span><span class="val" id="stat-pos">2,847</span></div>
+  <div class="stat-item"><span class="label">Binary Contracts</span><span class="val" id="stat-bin">1,203</span></div>
+  <div class="stat-item"><span class="label">Vault TVL</span><span class="val">$4.2M</span></div>
+  <div class="stat-item"><span class="label">Protocol Fees</span><span class="val">$18,441</span></div>
+  <div class="stat-item"><span class="label">Oracle</span><span class="up">Chainlink · 30s</span></div>
+  <div class="stat-item"><span class="label">Network</span><span class="val">RHC #4663</span></div>
+</div>
 
-    <form class="form" id="waitlist-form" novalidate>
-      <input type="email" id="email" placeholder="your@email.com" autocomplete="email" required>
-      <button type="submit">Notify me</button>
-    </form>
-    <p class="note">No spam. One email when we launch.</p>
+<!-- MAIN BODY -->
+<div class="app-body">
 
-    <ul class="features">
-      <li>Covered calls</li>
-      <li>Cash-secured puts</li>
-      <li>Binary options</li>
-      <li>Yield vault</li>
-      <li>No KYC</li>
-    </ul>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-title">Markets</span>
+      <div class="search-box">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4"/><path d="m10 10 2.5 2.5"/></svg>
+        <input type="text" placeholder="Search…" id="mktSearch">
+      </div>
+      <div class="cat-tabs">
+        <button class="cat-tab active" data-cat="all">All</button>
+        <button class="cat-tab" data-cat="tech">Tech</button>
+        <button class="cat-tab" data-cat="etf">ETF</button>
+        <button class="cat-tab" data-cat="other">Other</button>
+      </div>
+    </div>
+    <div class="market-list" id="marketList"></div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <!-- PRODUCT TABS -->
+    <div class="prod-tabs" id="prodTabs">
+      <button class="prod-tab active" data-prod="write">Write Call</button>
+      <button class="prod-tab" data-prod="put">Write Put</button>
+      <button class="prod-tab" data-prod="binary">Binary</button>
+      <button class="prod-tab" data-prod="vault">Yield Vault</button>
+    </div>
+
+    <div class="content-area">
+      <!-- TRADE PANEL -->
+      <div class="trade-panel" id="tradePanel">
+
+        <!-- Market Header -->
+        <div class="mkt-header">
+          <div class="mkt-header-left">
+            <h2 id="mktTitle">NVDA</h2>
+            <div class="full-name" id="mktFullName">NVIDIA Corporation</div>
+            <div class="oracle-info">
+              <span class="oracle-dot"></span>
+              <span id="oracleTs">Oracle updated 12s ago</span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="mkt-price-big" id="mktPriceBig">$875.40</div>
+            <div class="mkt-price-chg">
+              <span class="chg up" id="mktChg">+$12.30 (+1.43%)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart placeholder -->
+        <div class="chart-area" id="chartArea">
+          <div class="chart-bars" id="chartBars"></div>
+        </div>
+
+        <!-- WRITE CALL / WRITE PUT FORM -->
+        <div id="formWrite">
+          <div class="order-form">
+            <div class="order-form-head">
+              <div class="order-side buy active" id="sideWrite">WRITE (SELL)</div>
+              <div class="order-side sell" id="sideBuy">BUY TO CLOSE</div>
+            </div>
+            <div class="order-body">
+              <div>
+                <div class="field-label">Strike Price</div>
+                <div class="field"><input type="number" id="strikeInput" value="900" step="5"><div class="unit">USD · Oracle settled</div></div>
+              </div>
+              <div>
+                <div class="field-label">Collateral (USDG)</div>
+                <div class="field"><input type="number" id="collateralInput" value="500" step="10"><div class="unit">USDG · min 100</div></div>
+              </div>
+              <div>
+                <div class="field-label">Expiry</div>
+                <div class="expiry-grid" id="expiryGrid">
+                  <button class="expiry-btn active" data-exp="1D">1D</button>
+                  <button class="expiry-btn" data-exp="3D">3D</button>
+                  <button class="expiry-btn" data-exp="7D">7D</button>
+                  <button class="expiry-btn" data-exp="14D">14D</button>
+                </div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Est. Premium</span>
+                <span class="val" id="premiumVal">~28.40 USDG</span>
+              </div>
+              <button class="btn-trade" id="tradeBtn" onclick="showConnect()">Write Call → Connect Wallet</button>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-row"><span class="k">Product</span><span class="v accent" id="infoProduct">Covered Call</span></div>
+            <div class="info-row"><span class="k">Strike</span><span class="v" id="infoStrike">$900.00</span></div>
+            <div class="info-row"><span class="k">Current Price</span><span class="v" id="infoCurrent">$875.40</span></div>
+            <div class="info-row"><span class="k">Settlement</span><span class="v">Chainlink oracle</span></div>
+            <div class="info-row"><span class="k">Protocol Fee</span><span class="v">0.5%</span></div>
+            <div class="info-row"><span class="k">Max Loss</span><span class="v" id="infoMaxLoss">Collateral only</span></div>
+          </div>
+        </div>
+
+        <!-- BINARY FORM -->
+        <div id="formBinary" style="display:none">
+          <div class="binary-grid">
+            <div class="binary-card up-card" id="binUp" onclick="selectBinary('up')">
+              <div class="binary-arrow">↑</div>
+              <div class="binary-label up">ABOVE</div>
+              <div class="binary-payout">1.85× payout</div>
+            </div>
+            <div class="binary-card dn-card" id="binDn" onclick="selectBinary('dn')">
+              <div class="binary-arrow">↓</div>
+              <div class="binary-label dn">BELOW</div>
+              <div class="binary-payout">1.85× payout</div>
+            </div>
+          </div>
+          <div class="order-form">
+            <div class="order-body">
+              <div>
+                <div class="field-label">Strike Price</div>
+                <div class="field"><input type="number" id="binStrike" value="880" step="5"><div class="unit">Settle above or below at expiry</div></div>
+              </div>
+              <div>
+                <div class="field-label">Bet Size (USDG)</div>
+                <div class="field"><input type="number" id="binSize" value="100" step="10"><div class="unit">Max loss = bet size</div></div>
+              </div>
+              <div>
+                <div class="field-label">Expiry</div>
+                <div class="expiry-grid">
+                  <button class="expiry-btn active">1H</button>
+                  <button class="expiry-btn">4H</button>
+                  <button class="expiry-btn">1D</button>
+                  <button class="expiry-btn">3D</button>
+                </div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Max Payout</span>
+                <span class="val" style="color:var(--green)" id="binPayout">185.00 USDG</span>
+              </div>
+              <button class="btn-trade" onclick="showConnect()">Place Binary Bet → Connect Wallet</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VAULT FORM -->
+        <div id="formVault" style="display:none">
+          <div class="vault-card">
+            <div class="vault-title">Yield Vault</div>
+            <div class="vault-desc">Deposit USDG. The vault automatically writes covered calls, distributes premiums weekly.</div>
+            <div class="vault-stats">
+              <div class="vault-stat"><b class="apy">18.4%</b><span>Est. APY</span></div>
+              <div class="vault-stat"><b>$4.2M</b><span>TVL</span></div>
+              <div class="vault-stat"><b>847</b><span>Depositors</span></div>
+            </div>
+          </div>
+          <div class="order-form">
+            <div class="order-form-head">
+              <div class="order-side buy active">DEPOSIT</div>
+              <div class="order-side sell">WITHDRAW</div>
+            </div>
+            <div class="order-body">
+              <div>
+                <div class="field-label">Amount (USDG)</div>
+                <div class="field"><input type="number" value="1000" step="100"><div class="unit">Min deposit: 50 USDG</div></div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Weekly yield est.</span>
+                <span class="val" style="color:var(--green)">~3.54 USDG / week</span>
+              </div>
+              <button class="btn-trade" onclick="showConnect()">Deposit to Vault → Connect Wallet</button>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-row"><span class="k">Strategy</span><span class="v accent">Covered call writing</span></div>
+            <div class="info-row"><span class="k">Collateral</span><span class="v">USDG</span></div>
+            <div class="info-row"><span class="k">Payout</span><span class="v">Weekly premium distribution</span></div>
+            <div class="info-row"><span class="k">Withdrawal</span><span class="v">Anytime (next epoch)</span></div>
+          </div>
+        </div>
+
+      </div><!-- /trade-panel -->
+
+      <!-- POSITIONS PANEL -->
+      <aside class="positions-panel">
+        <div class="positions-head">
+          <h3>Positions</h3>
+          <span class="pos-count" id="posCount">0</span>
+        </div>
+        <div class="positions-tabs">
+          <button class="pos-tab active" data-pt="open">Open</button>
+          <button class="pos-tab" data-pt="history">History</button>
+          <button class="pos-tab" data-pt="orders">Orders</button>
+        </div>
+        <div class="positions-list" id="positionsList">
+          <div class="empty-state">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="8" width="24" height="18" rx="3"/><path d="M10 8V6a2 2 0 014 0v2M18 8V6a2 2 0 014 0v2"/></svg>
+            <p>Connect wallet to see positions</p>
+          </div>
+        </div>
+      </aside>
+    </div><!-- /content-area -->
+  </div><!-- /main -->
+</div><!-- /app-body -->
+
+<!-- CONNECT WALLET MODAL -->
+<div class="connect-overlay" id="connectOverlay" style="display:none" onclick="hideConnect(event)">
+  <div class="connect-modal">
+    <button class="modal-close" onclick="hideConnect(null)">✕</button>
+    <h2>Connect Wallet</h2>
+    <p>Choose a wallet to connect to xStockFi on Robinhood Chain (ID 4663).</p>
+    <div class="wallet-list">
+      <div class="wallet-opt" onclick="mockConnect('MetaMask')">
+        <div class="wallet-icon" style="background:#f6851b22;">🦊</div>
+        <div class="wallet-info">
+          <div class="wallet-name">MetaMask</div>
+          <div class="wallet-sub">Browser extension</div>
+        </div>
+      </div>
+      <div class="wallet-opt" onclick="mockConnect('WalletConnect')">
+        <div class="wallet-icon" style="background:#3b99fc22;">🔗</div>
+        <div class="wallet-info">
+          <div class="wallet-name">WalletConnect</div>
+          <div class="wallet-sub">Scan with mobile wallet</div>
+        </div>
+      </div>
+      <div class="wallet-opt" onclick="mockConnect('Coinbase Wallet')">
+        <div class="wallet-icon" style="background:#0052ff22;">🔵</div>
+        <div class="wallet-info">
+          <div class="wallet-name">Coinbase Wallet</div>
+          <div class="wallet-sub">Browser & mobile</div>
+        </div>
+      </div>
+      <div class="wallet-opt" onclick="mockConnect('Rabby')">
+        <div class="wallet-icon" style="background:#8b5cf622;">🐰</div>
+        <div class="wallet-info">
+          <div class="wallet-name">Rabby</div>
+          <div class="wallet-sub">Multi-chain browser wallet</div>
+        </div>
+      </div>
+    </div>
+    <p class="modal-note">By connecting you agree to the <a href="terms.html" style="color:var(--accent-hi)">Terms of Service</a> and <a href="privacy.html" style="color:var(--accent-hi)">Privacy Policy</a>.</p>
   </div>
-</main>
-
-<footer>
-  <span>© <span id="yr"></span> xStockFi</span>
-  <nav class="foot-links" aria-label="Footer">
-    <a href="index.html">Home</a>
-    <a href="docs.html">Docs</a>
-    <a href="terms.html">Terms</a>
-    <a href="privacy.html">Privacy</a>
-  </nav>
-</footer>
+</div>
 
 <script>
-document.getElementById('yr').textContent = new Date().getFullYear();
-document.getElementById('waitlist-form').addEventListener('submit', function(e){
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  if(!email) return;
-  // TODO: wire to your email service (e.g. Mailchimp, Resend, ConvertKit)
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = "You're on the list!";
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 2200);
-  document.getElementById('email').value = '';
+// ===== MARKET DATA =====
+const MARKETS = [
+  {t:'NVDA', n:'NVIDIA',        cat:'tech', p:875.40,  chg:+1.43},
+  {t:'AAPL', n:'Apple',         cat:'tech', p:211.80,  chg:-0.32},
+  {t:'TSLA', n:'Tesla',         cat:'tech', p:248.60,  chg:+2.71},
+  {t:'AMZN', n:'Amazon',        cat:'tech', p:192.30,  chg:+0.88},
+  {t:'MSFT', n:'Microsoft',     cat:'tech', p:418.50,  chg:+0.14},
+  {t:'GOOGL',n:'Alphabet',      cat:'tech', p:175.20,  chg:-0.55},
+  {t:'META', n:'Meta',          cat:'tech', p:542.10,  chg:+1.02},
+  {t:'AMD',  n:'AMD',           cat:'tech', p:155.80,  chg:+3.14},
+  {t:'INTC', n:'Intel',         cat:'tech', p:22.40,   chg:-1.80},
+  {t:'SHOP', n:'Shopify',       cat:'tech', p:73.20,   chg:+0.62},
+  {t:'SNOW', n:'Snowflake',     cat:'tech', p:148.90,  chg:+1.22},
+  {t:'RBLX', n:'Roblox',        cat:'tech', p:42.10,   chg:-0.44},
+  {t:'NFLX', n:'Netflix',       cat:'tech', p:684.70,  chg:+0.78},
+  {t:'SQ',   n:'Block',         cat:'other',p:68.30,   chg:+2.10},
+  {t:'COIN', n:'Coinbase',      cat:'other',p:218.50,  chg:+4.22},
+  {t:'HOOD', n:'Robinhood',     cat:'other',p:18.70,   chg:+1.63},
+  {t:'MSTR', n:'MicroStrategy', cat:'other',p:1340.00, chg:+6.88},
+  {t:'PLTR', n:'Palantir',      cat:'other',p:38.40,   chg:+2.33},
+  {t:'GME',  n:'GameStop',      cat:'other',p:22.10,   chg:-3.44},
+  {t:'PYPL', n:'PayPal',        cat:'other',p:72.80,   chg:+0.55},
+  {t:'UBER', n:'Uber',          cat:'other',p:81.20,   chg:+0.90},
+  {t:'LYFT', n:'Lyft',          cat:'other',p:14.60,   chg:+1.11},
+  {t:'BABA', n:'Alibaba',       cat:'other',p:88.40,   chg:-1.20},
+  {t:'NIO',  n:'NIO',           cat:'other',p:5.20,    chg:-2.34},
+  {t:'QQQ',  n:'QQQ ETF',       cat:'etf',  p:471.80,  chg:+0.92},
+  {t:'SPY',  n:'S&P 500 ETF',   cat:'etf',  p:524.60,  chg:+0.61},
+];
+
+let selectedMkt = MARKETS[0];
+let activeCat = 'all';
+let activeProd = 'write';
+let binaryDir = null;
+let connected = false;
+let oracleAge = 12;
+
+// render market list
+function renderList(){
+  const q = document.getElementById('mktSearch').value.toLowerCase();
+  const items = MARKETS.filter(m=>{
+    if(activeCat !== 'all' && m.cat !== activeCat) return false;
+    if(q && !m.t.toLowerCase().includes(q) && !m.n.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('marketList').innerHTML = items.map(m=>`
+    <div class="mkt-row${m.t===selectedMkt.t?' active':''}" onclick="selectMkt('${m.t}')">
+      <div class="mkt-left">
+        <span class="ticker">${m.t}</span>
+        <div>
+          <div class="mkt-name">${m.n}</div>
+        </div>
+      </div>
+      <div class="mkt-right">
+        <div class="mkt-price">$${m.p.toFixed(2)}</div>
+        <div class="mkt-chg ${m.chg>=0?'up':'dn'}">${m.chg>=0?'+':''}${m.chg.toFixed(2)}%</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectMkt(ticker){
+  selectedMkt = MARKETS.find(m=>m.t===ticker) || MARKETS[0];
+  renderList();
+  updateHeader();
+  renderChart();
+  updateForm();
+}
+
+function updateHeader(){
+  const m = selectedMkt;
+  document.getElementById('mktTitle').textContent = m.t;
+  document.getElementById('mktFullName').textContent = m.n;
+  document.getElementById('mktPriceBig').textContent = '$'+m.p.toFixed(2);
+  const chgAmt = (m.p * m.chg/100).toFixed(2);
+  const sign = m.chg>=0?'+':'';
+  document.getElementById('mktChg').textContent = `${sign}$${Math.abs(chgAmt)} (${sign}${m.chg.toFixed(2)}%)`;
+  document.getElementById('mktChg').className = 'chg '+(m.chg>=0?'up':'dn');
+  document.getElementById('infoCurrent').textContent = '$'+m.p.toFixed(2);
+  // default strike = price * 1.05 rounded to nearest 5
+  const strike = Math.round(m.p*1.05/5)*5;
+  document.getElementById('strikeInput').value = strike;
+  document.getElementById('binStrike').value = Math.round(m.p/5)*5;
+  document.getElementById('infoStrike').textContent = '$'+strike.toFixed(2);
+  updatePremium();
+}
+
+function renderChart(){
+  const bars = document.getElementById('chartBars');
+  const count = 42;
+  let html = '';
+  for(let i=0;i<count;i++){
+    const h = 20 + Math.random()*75;
+    const up = Math.random() > 0.42;
+    html += `<div class="chart-bar ${up?'up':'dn'}" style="height:${h}%"></div>`;
+  }
+  bars.innerHTML = html;
+}
+
+function updatePremium(){
+  const m = selectedMkt;
+  const collateral = parseFloat(document.getElementById('collateralInput').value||500);
+  const est = (collateral * 0.057).toFixed(2);
+  document.getElementById('premiumVal').textContent = `~${est} USDG`;
+  const prodLabel = activeProd==='put'?'Cash-Secured Put':'Covered Call';
+  document.getElementById('infoProduct').textContent = prodLabel;
+}
+
+function updateForm(){
+  updatePremium();
+  const tab = document.querySelector('.prod-tab.active');
+  if(tab) {
+    const p = tab.dataset.prod;
+    document.getElementById('formWrite').style.display = (p==='write'||p==='put')?'':'none';
+    document.getElementById('formBinary').style.display = p==='binary'?'':'none';
+    document.getElementById('formVault').style.display = p==='vault'?'':'none';
+  }
+}
+
+// binary selection
+function selectBinary(dir){
+  binaryDir = dir;
+  document.getElementById('binUp').className = 'binary-card up-card'+(dir==='up'?' selected-up':'');
+  document.getElementById('binDn').className = 'binary-card dn-card'+(dir==='dn'?' selected-dn':'');
+  const size = parseFloat(document.getElementById('binSize').value||100);
+  document.getElementById('binPayout').textContent = (size*1.85).toFixed(2)+' USDG';
+}
+
+// connect wallet
+function showConnect(){
+  document.getElementById('connectOverlay').style.display='flex';
+}
+function hideConnect(e){
+  if(!e || e.target===document.getElementById('connectOverlay')){
+    document.getElementById('connectOverlay').style.display='none';
+  }
+}
+function mockConnect(name){
+  connected = true;
+  document.getElementById('connectOverlay').style.display='none';
+  // swap button to address display
+  const btn = document.getElementById('connectBtn');
+  btn.outerHTML = '<div class="wallet-connected"><span class="wallet-dot"></span><span style="font-family:var(--mono);font-size:12px">0x3f…a72c</span></div>';
+  // update trade buttons
+  document.querySelectorAll('.btn-trade').forEach(b=>{
+    b.textContent = b.textContent.replace(' → Connect Wallet','');
+  });
+  // show mock positions
+  showMockPositions();
+}
+
+function showMockPositions(){
+  document.getElementById('posCount').textContent = '3';
+  document.getElementById('positionsList').innerHTML = `
+    <div class="pos-card">
+      <div class="pos-card-head">
+        <span class="pos-ticker">NVDA</span>
+        <span class="pos-badge call">CALL</span>
+      </div>
+      <div class="pos-row"><span class="k">Strike</span><span class="v">$900</span></div>
+      <div class="pos-row"><span class="k">Expiry</span><span class="v">7D</span></div>
+      <div class="pos-row"><span class="k">Collateral</span><span class="v">500 USDG</span></div>
+      <div class="pos-row"><span class="k">Premium</span><span class="v pos">+28.50 USDG</span></div>
+      <div class="pos-actions">
+        <button class="pos-btn">Details</button>
+        <button class="pos-btn close">Close</button>
+      </div>
+    </div>
+    <div class="pos-card">
+      <div class="pos-card-head">
+        <span class="pos-ticker">TSLA</span>
+        <span class="pos-badge binary">BINARY</span>
+      </div>
+      <div class="pos-row"><span class="k">Direction</span><span class="v" style="color:var(--green)">ABOVE $250</span></div>
+      <div class="pos-row"><span class="k">Expiry</span><span class="v">1D</span></div>
+      <div class="pos-row"><span class="k">Bet</span><span class="v">100 USDG</span></div>
+      <div class="pos-row"><span class="k">Max Payout</span><span class="v pos">185 USDG</span></div>
+      <div class="pos-actions">
+        <button class="pos-btn">Details</button>
+        <button class="pos-btn close">Close</button>
+      </div>
+    </div>
+    <div class="pos-card">
+      <div class="pos-card-head">
+        <span class="pos-ticker">VAULT</span>
+        <span class="pos-badge vault">VAULT</span>
+      </div>
+      <div class="pos-row"><span class="k">Deposited</span><span class="v">1,000 USDG</span></div>
+      <div class="pos-row"><span class="k">Yield earned</span><span class="v pos">+14.22 USDG</span></div>
+      <div class="pos-row"><span class="k">APY</span><span class="v" style="color:var(--green)">18.4%</span></div>
+      <div class="pos-actions">
+        <button class="pos-btn">Details</button>
+        <button class="pos-btn close">Withdraw</button>
+      </div>
+    </div>
+  `;
+}
+
+// product tab switching
+document.querySelectorAll('.prod-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.prod-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeProd = btn.dataset.prod;
+    updateForm();
+    if(activeProd==='put'){
+      document.getElementById('sideWrite').textContent = 'WRITE (SELL)';
+      document.getElementById('infoProduct').textContent = 'Cash-Secured Put';
+      document.getElementById('infoMaxLoss').textContent = 'Collateral only';
+      document.querySelector('.btn-trade').textContent = connected?'Write Put':'Write Put → Connect Wallet';
+    } else if(activeProd==='write'){
+      document.getElementById('sideWrite').textContent = 'WRITE (SELL)';
+      document.querySelector('.btn-trade') && (document.querySelector('.btn-trade').textContent = connected?'Write Call':'Write Call → Connect Wallet');
+    }
+  });
 });
+
+// cat tabs
+document.querySelectorAll('.cat-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    renderList();
+  });
+});
+
+// positions tabs
+document.querySelectorAll('.pos-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.pos-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// expiry buttons
+document.querySelectorAll('.expiry-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const parent = btn.closest('.expiry-grid');
+    parent.querySelectorAll('.expiry-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// topbar nav
+document.querySelectorAll('.topbar-nav a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    document.querySelectorAll('.topbar-nav a').forEach(b=>b.classList.remove('active'));
+    a.classList.add('active');
+    const s = a.dataset.section;
+    // map sections to prod tabs
+    const map = {trade:'write',binary:'binary',vault:'vault',positions:'write'};
+    if(map[s]){
+      document.querySelectorAll('.prod-tab').forEach(b=>{
+        b.classList.toggle('active', b.dataset.prod===map[s]);
+      });
+      activeProd = map[s];
+      updateForm();
+    }
+    if(s==='positions') showConnect();
+  });
+});
+
+// inputs
+document.getElementById('strikeInput').addEventListener('input', ()=>{
+  const v = parseFloat(document.getElementById('strikeInput').value||0);
+  document.getElementById('infoStrike').textContent = '$'+v.toFixed(2);
+});
+document.getElementById('collateralInput').addEventListener('input', updatePremium);
+document.getElementById('mktSearch').addEventListener('input', renderList);
+document.getElementById('binSize').addEventListener('input',()=>{
+  const size = parseFloat(document.getElementById('binSize').value||0);
+  document.getElementById('binPayout').textContent = (size*1.85).toFixed(2)+' USDG';
+});
+
+// oracle timer
+setInterval(()=>{
+  oracleAge = (oracleAge+1) % 31;
+  document.getElementById('oracleTs').textContent = `Oracle updated ${oracleAge||1}s ago`;
+  // jitter prices slightly
+  MARKETS.forEach(m=>{ m.p = +(m.p * (1 + (Math.random()-.5)*.0005)).toFixed(2); });
+  renderList();
+  document.getElementById('mktPriceBig').textContent = '$'+selectedMkt.p.toFixed(2);
+  document.getElementById('infoCurrent').textContent = '$'+selectedMkt.p.toFixed(2);
+}, 1000);
+
+// init
+renderList();
+updateHeader();
+renderChart();
+updateForm();
 </script>
 </body>
 </html>
