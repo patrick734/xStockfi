@@ -504,7 +504,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
             <div class="vault-title">Yield Vault</div>
             <div class="vault-desc">Deposit USDG. The vault automatically writes covered calls, distributes premiums weekly.</div>
             <div class="vault-stats">
-              <div class="vault-stat"><b class="apy">18.4%</b><span>Est. APY</span></div>
+              <div class="vault-stat"><b class="apy" id="vaultApy">—</b><span>Est. APY</span></div>
               <div class="vault-stat"><b id="vaultTvl">—</b><span>TVL</span></div>
               <div class="vault-stat"><b id="vaultPps">—</b><span>Price/Share</span></div>
             </div>
@@ -609,13 +609,59 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 
 <script>
-// ===== ORACLE ABI (only what we need) =====
+// ===== ABIs (matching deployed contracts exactly) =====
 const ORACLE_ABI = [
-  "function getPriceUnsafe(string ticker) view returns (uint256 price, uint256 updatedAt)"
+  "function getPriceUnsafe(string ticker) view returns (uint256 price, uint256 updatedAt)",
+  "function isFeedActive(string ticker) view returns (bool)"
 ];
 const VAULT_ABI = [
   "function totalAssets() view returns (uint256)",
-  "function pricePerShare() view returns (uint256)"
+  "function pricePerShare() view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function previewDeposit(uint256 amount) view returns (uint256 shares)",
+  "function previewWithdraw(uint256 shares) view returns (uint256 usdgOut)",
+  "function deposit(uint256 amount) external returns (uint256 shares)",
+  "function withdraw(uint256 shares) external returns (uint256 usdgOut)"
+];
+const COVERED_CALL_ABI = [
+  "function write(string ticker, uint256 strike, uint256 collateral, uint256 premium, uint256 expiry) external returns (uint256 id)",
+  "function buy(uint256 id) external",
+  "function exercise(uint256 id) external",
+  "function expire(uint256 id) external",
+  "function cancel(uint256 id) external",
+  "function options(uint256 id) view returns (address writer, address buyer, string ticker, uint256 strike, uint256 collateral, uint256 premium, uint256 expiry, uint8 status)",
+  "function nextId() view returns (uint256)",
+  "function MIN_COLLATERAL() view returns (uint256)",
+  "function FEE_BPS() view returns (uint256)",
+  "event Written(uint256 indexed id, address indexed writer, string ticker, uint256 strike, uint256 collateral, uint256 expiry)"
+];
+const CASH_PUT_ABI = [
+  "function write(string ticker, uint256 strike, uint256 collateral, uint256 premium, uint256 expiry) external returns (uint256 id)",
+  "function buy(uint256 id) external",
+  "function exercise(uint256 id) external",
+  "function expire(uint256 id) external",
+  "function cancel(uint256 id) external",
+  "function options(uint256 id) view returns (address writer, address buyer, string ticker, uint256 strike, uint256 collateral, uint256 premium, uint256 expiry, uint8 status)",
+  "function nextId() view returns (uint256)",
+  "function MIN_COLLATERAL() view returns (uint256)",
+  "event Written(uint256 indexed id, address indexed writer, string ticker, uint256 strike, uint256 collateral, uint256 expiry)"
+];
+const BINARY_ABI = [
+  "function placeBet(string ticker, uint256 strike, uint256 betSize, uint8 direction, uint256 expiry) external returns (uint256 id)",
+  "function settle(uint256 id) external",
+  "function binaries(uint256 id) view returns (address bettor, string ticker, uint256 strike, uint256 betSize, uint256 expiry, uint8 direction, uint8 status)",
+  "function nextId() view returns (uint256)",
+  "function reservePool() view returns (uint256)",
+  "function PAYOUT_BPS() view returns (uint256)",
+  "function MIN_BET() view returns (uint256)",
+  "function FEE_BPS() view returns (uint256)",
+  "event BetPlaced(uint256 indexed id, address indexed bettor, string ticker, uint256 strike, uint8 direction, uint256 betSize, uint256 expiry)"
+];
+const ERC20_ABI = [
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function balanceOf(address account) view returns (uint256)"
 ];
 
 // ===== MARKET DEFINITIONS =====
@@ -663,22 +709,17 @@ let connected = false;
 let walletAddress = null;
 let signer = null;
 let oracleAge = 0;
-let provider, oracleContract, vaultContract;
+let provider, oracleContract, vaultContract, coveredCallContract, cashPutContract, binaryContract;
 
-// ===== WRITE CONTRACT ABIs =====
-const COVERED_CALL_ABI = [
-  "function writeCall(string ticker, uint256 strikePrice, uint256 expiry, uint256 collateral) external returns (uint256 optionId)"
-];
-const CASH_PUT_ABI = [
-  "function writePut(string ticker, uint256 strikePrice, uint256 expiry, uint256 collateral) external returns (uint256 optionId)"
-];
-const BINARY_ABI = [
-  "function placeBet(string ticker, bool above, uint256 strikePrice, uint256 expiry, uint256 amount) external returns (uint256 betId)"
-];
-const VAULT_WRITE_ABI = [
-  "function deposit(uint256 assets, address receiver) external returns (uint256 shares)",
-  "function withdraw(uint256 assets, address receiver, address owner) external returns (uint256 shares)"
-];
+// on-chain constants (fetched once)
+const CHAIN_CONSTANTS = {
+  payoutBps: 18500,   // fallback; overwritten from chain
+  feeBps: 50,
+  minBet: 10,
+  minCollateral: 100,
+  minDeposit: 50
+};
+
 const ERC20_ABI = [
   "function approve(address spender, uint256 amount) external returns (bool)",
   "function allowance(address owner, address spender) view returns (uint256)",
@@ -689,21 +730,49 @@ const ERC20_ABI = [
 async function initContracts(){
   try {
     provider = new ethers.JsonRpcProvider(window.XSTOCKFI.rpc);
-    oracleContract = new ethers.Contract(
-      window.XSTOCKFI.contracts.oracleReader,
-      ORACLE_ABI,
-      provider
-    );
-    vaultContract = new ethers.Contract(
-      window.XSTOCKFI.contracts.yieldVault,
-      VAULT_ABI,
-      provider
-    );
-    await fetchAllPrices();
-    await fetchVaultStats();
+    const cfg = window.XSTOCKFI.contracts;
+
+    oracleContract     = new ethers.Contract(cfg.oracleReader,   ORACLE_ABI,       provider);
+    vaultContract      = new ethers.Contract(cfg.yieldVault,     VAULT_ABI,        provider);
+    coveredCallContract= new ethers.Contract(cfg.coveredCall,     COVERED_CALL_ABI, provider);
+    cashPutContract    = new ethers.Contract(cfg.cashSecuredPut,  CASH_PUT_ABI,     provider);
+    binaryContract     = new ethers.Contract(cfg.binaryOption,    BINARY_ABI,       provider);
+
+    // Fetch on-chain constants once
+    const [payoutBps, feeBps, minBet, minCollat] = await Promise.all([
+      binaryContract.PAYOUT_BPS(),
+      binaryContract.FEE_BPS(),
+      binaryContract.MIN_BET(),
+      coveredCallContract.MIN_COLLATERAL()
+    ]);
+    CHAIN_CONSTANTS.payoutBps      = Number(payoutBps);
+    CHAIN_CONSTANTS.feeBps         = Number(feeBps);
+    CHAIN_CONSTANTS.minBet         = Number(minBet) / 1e18;
+    CHAIN_CONSTANTS.minCollateral  = Number(minCollat) / 1e18;
+
+    // Update UI with real constants
+    const payoutMult = (CHAIN_CONSTANTS.payoutBps / 10000).toFixed(2);
+    document.querySelectorAll('.binary-payout').forEach(el => {
+      el.textContent = `${payoutMult}× payout`;
+    });
+
+    await Promise.all([fetchAllPrices(), fetchVaultStats(), fetchReservePool()]);
   } catch(e){
     console.warn('RPC init failed:', e.message);
   }
+}
+
+async function fetchReservePool(){
+  try {
+    const pool = await binaryContract.reservePool();
+    const poolUsdg = Number(pool) / 1e18;
+    const el = document.getElementById('stat-pool');
+    if(el){
+      el.textContent = poolUsdg >= 1e6 ? `$${(poolUsdg/1e6).toFixed(2)}M`
+                     : poolUsdg >= 1e3 ? `$${(poolUsdg/1e3).toFixed(1)}K`
+                     : `$${poolUsdg.toFixed(0)}`;
+    }
+  } catch(e){}
 }
 
 // ===== FETCH PRICES FROM CHAINLINK VIA ORACLE CONTRACT =====
@@ -756,6 +825,18 @@ async function fetchVaultStats(){
     if(vaultTvlEl) vaultTvlEl.textContent = tvlStr;
     const vaultPpsEl = document.getElementById('vaultPps');
     if(vaultPpsEl) vaultPpsEl.textContent = `$${ppsVal.toFixed(4)}`;
+
+    // APY estimate: (pricePerShare - 1.0) annualised
+    // pricePerShare starts at 1e18 on first deposit
+    if(ppsVal > 1.0){
+      const gain = ppsVal - 1.0; // total gain per share since inception
+      // We don't know time elapsed on-chain without events, so show total gain %
+      const apyEl = document.getElementById('vaultApy');
+      if(apyEl) apyEl.textContent = `+${(gain * 100).toFixed(2)}%`;
+    } else {
+      const apyEl = document.getElementById('vaultApy');
+      if(apyEl) apyEl.textContent = ppsVal === 1.0 ? '—' : `${((ppsVal-1)*100).toFixed(2)}%`;
+    }
   } catch(e){}
 }
 
@@ -861,7 +942,8 @@ function selectBinary(dir){
   document.getElementById('binUp').className = 'binary-card up-card'+(dir==='up'?' selected-up':'');
   document.getElementById('binDn').className = 'binary-card dn-card'+(dir==='dn'?' selected-dn':'');
   const size = parseFloat(document.getElementById('binSize').value||100);
-  document.getElementById('binPayout').textContent = (size*1.85).toFixed(2)+' USDG';
+  const mult = CHAIN_CONSTANTS.payoutBps / 10000;
+  document.getElementById('binPayout').textContent = (size*mult).toFixed(2)+' USDG';
 }
 
 function showConnect(){ document.getElementById('connectOverlay').style.display='flex'; }
@@ -944,6 +1026,7 @@ async function mockConnect(name){
       b.textContent = b.textContent.replace(' → Connect Wallet','');
     });
     showToast('Wallet connected');
+    await fetchPositions();
   } catch(err){
     if(err.code === 4001) showToast('Connection rejected.');
     else showToast('Connection failed: ' + (err.message||err));
@@ -977,73 +1060,273 @@ async function executeTrade(){
   try {
     if(prod === 'write' || prod === 'put'){
       const ticker = selectedMkt.t;
-      const strikeRaw = parseFloat(document.getElementById('strikeInput').value||0);
-      const collateralRaw = parseFloat(document.getElementById('collateralInput').value||500);
-      const strike = ethers.parseUnits(strikeRaw.toFixed(18), 18);
-      const collateral = ethers.parseUnits(collateralRaw.toFixed(18), 18);
-      // pick expiry from active button
-      const expiryBtn = document.querySelector('#formWrite .expiry-btn.active, #formBinary .expiry-btn.active');
-      const expiryDays = expiryBtn ? parseInt(expiryBtn.textContent)||7 : 7;
-      const expiry = BigInt(Math.floor(Date.now()/1000) + expiryDays * 86400);
+      if(!FEED_TICKERS.has(ticker)){ showToast('No oracle feed for ' + ticker); return; }
 
-      if(prod === 'write'){
-        const addr = window.XSTOCKFI.contracts.coveredCall;
-        await ensureApproval(addr, collateral);
-        showToast('Submitting covered call…');
-        const c = new ethers.Contract(addr, COVERED_CALL_ABI, signer);
-        const tx = await c.writeCall(ticker, strike, expiry, collateral);
-        showToast('Pending…');
-        await tx.wait();
-        showToast('✓ Covered call written!');
-      } else {
-        const addr = window.XSTOCKFI.contracts.cashSecuredPut;
-        await ensureApproval(addr, collateral);
-        showToast('Submitting cash-secured put…');
-        const c = new ethers.Contract(addr, CASH_PUT_ABI, signer);
-        const tx = await c.writePut(ticker, strike, expiry, collateral);
-        showToast('Pending…');
-        await tx.wait();
-        showToast('✓ Cash-secured put written!');
+      const strikeRaw     = parseFloat(document.getElementById('strikeInput').value||0);
+      const collateralRaw = parseFloat(document.getElementById('collateralInput').value||0);
+      const premiumRaw    = parseFloat(document.getElementById('premiumInput')?.value||0);
+
+      if(strikeRaw <= 0)  { showToast('Enter a strike price.'); return; }
+      if(collateralRaw < CHAIN_CONSTANTS.minCollateral){
+        showToast(`Min collateral is ${CHAIN_CONSTANTS.minCollateral} USDG.`); return;
       }
+
+      const strike     = ethers.parseUnits(strikeRaw.toFixed(18), 18);
+      const collateral = ethers.parseUnits(collateralRaw.toFixed(18), 18);
+      const premium    = ethers.parseUnits(premiumRaw.toFixed(18), 18);
+
+      const expiryBtn  = document.querySelector('#formWrite .expiry-btn.active');
+      const expiryDays = expiryBtn ? parseInt(expiryBtn.textContent)||7 : 7;
+      const expiry     = BigInt(Math.floor(Date.now()/1000) + expiryDays * 86400);
+
+      const signerContract = prod === 'write'
+        ? coveredCallContract.connect(signer)
+        : cashPutContract.connect(signer);
+      const addr = prod === 'write'
+        ? window.XSTOCKFI.contracts.coveredCall
+        : window.XSTOCKFI.contracts.cashSecuredPut;
+      const label = prod === 'write' ? 'covered call' : 'cash-secured put';
+
+      await ensureApproval(addr, collateral);
+      showToast(`Submitting ${label}…`);
+      // Contract: write(ticker, strike, collateral, premium, expiry)
+      const tx = await signerContract.write(ticker, strike, collateral, premium, expiry);
+      showToast('Pending…');
+      await tx.wait();
+      showToast(`✓ ${label.charAt(0).toUpperCase()+label.slice(1)} written!`);
+      await fetchPositions();
 
     } else if(prod === 'binary'){
       if(!binaryDir){ showToast('Select ABOVE or BELOW first.'); return; }
       const ticker = selectedMkt.t;
+      if(!FEED_TICKERS.has(ticker)){ showToast('No oracle feed for ' + ticker); return; }
+
       const strikeRaw = parseFloat(document.getElementById('binStrike').value||0);
-      const amountRaw = parseFloat(document.getElementById('binSize').value||100);
-      const strike = ethers.parseUnits(strikeRaw.toFixed(18), 18);
-      const amount = ethers.parseUnits(amountRaw.toFixed(18), 18);
-      const expiryBtn = document.querySelector('#formBinary .expiry-btn.active');
+      const amountRaw = parseFloat(document.getElementById('binSize').value||0);
+      if(amountRaw < CHAIN_CONSTANTS.minBet){
+        showToast(`Min bet is ${CHAIN_CONSTANTS.minBet} USDG.`); return;
+      }
+
+      const strike  = ethers.parseUnits(strikeRaw.toFixed(18), 18);
+      const amount  = ethers.parseUnits(amountRaw.toFixed(18), 18);
+      const expiryBtn  = document.querySelector('#formBinary .expiry-btn.active');
       const expiryDays = expiryBtn ? parseInt(expiryBtn.textContent)||1 : 1;
-      const expiry = BigInt(Math.floor(Date.now()/1000) + expiryDays * 86400);
-      const above = binaryDir === 'up';
+      const expiry  = BigInt(Math.floor(Date.now()/1000) + expiryDays * 86400);
+      // Direction enum: 0 = Above, 1 = Below
+      const direction = binaryDir === 'up' ? 0 : 1;
+
       const addr = window.XSTOCKFI.contracts.binaryOption;
       await ensureApproval(addr, amount);
       showToast('Placing binary bet…');
-      const c = new ethers.Contract(addr, BINARY_ABI, signer);
-      const tx = await c.placeBet(ticker, above, strike, expiry, amount);
+      // Contract: placeBet(ticker, strike, betSize, direction, expiry)
+      const tx = await binaryContract.connect(signer).placeBet(ticker, strike, amount, direction, expiry);
       showToast('Pending…');
       await tx.wait();
       showToast('✓ Bet placed!');
+      await fetchPositions();
+      await fetchReservePool();
 
     } else if(prod === 'vault'){
-      const amountRaw = parseFloat(document.getElementById('vaultDepositInput')?.value||100);
+      const amountRaw = parseFloat(document.getElementById('vaultDepositInput')?.value||0);
+      if(amountRaw < CHAIN_CONSTANTS.minDeposit){
+        showToast(`Min deposit is ${CHAIN_CONSTANTS.minDeposit} USDG.`); return;
+      }
       const amount = ethers.parseUnits(amountRaw.toFixed(18), 18);
       const addr = window.XSTOCKFI.contracts.yieldVault;
       await ensureApproval(addr, amount);
       showToast('Depositing to vault…');
-      const c = new ethers.Contract(addr, VAULT_WRITE_ABI, signer);
-      const tx = await c.deposit(amount, walletAddress);
+      // Contract: deposit(uint256 amount) — no receiver arg
+      const tx = await vaultContract.connect(signer).deposit(amount);
       showToast('Pending…');
       await tx.wait();
       showToast('✓ Deposited to vault!');
       await fetchVaultStats();
+      await fetchPositions();
     }
   } catch(err){
     if(err.code === 4001 || err.code === 'ACTION_REJECTED') showToast('Transaction rejected.');
-    else showToast('Error: ' + (err.reason || err.message || 'unknown'));
+    else showToast('Error: ' + (err.reason || err.shortMessage || err.message || 'unknown'));
     console.error(err);
   }
+}
+
+// ===== FETCH REAL POSITIONS FOR CONNECTED WALLET =====
+async function fetchPositions(){
+  if(!connected || !walletAddress) return;
+  try {
+    const [callCount, putCount, binCount] = await Promise.all([
+      coveredCallContract.nextId(),
+      cashPutContract.nextId(),
+      binaryContract.nextId()
+    ]);
+
+    const positions = [];
+
+    // Scan covered calls (last 50 max for perf)
+    const callStart = Math.max(0, Number(callCount) - 50);
+    for(let i = callStart; i < Number(callCount); i++){
+      try {
+        const o = await coveredCallContract.options(i);
+        if(o.writer.toLowerCase() === walletAddress.toLowerCase() && o.status === 0n){
+          positions.push({type:'CALL', id:i, ticker:o.ticker,
+            strike: Number(o.strike)/1e18, collateral: Number(o.collateral)/1e18,
+            premium: Number(o.premium)/1e18, expiry: Number(o.expiry)});
+        }
+      } catch(e){}
+    }
+
+    // Scan cash-secured puts
+    const putStart = Math.max(0, Number(putCount) - 50);
+    for(let i = putStart; i < Number(putCount); i++){
+      try {
+        const o = await cashPutContract.options(i);
+        if(o.writer.toLowerCase() === walletAddress.toLowerCase() && o.status === 0n){
+          positions.push({type:'PUT', id:i, ticker:o.ticker,
+            strike: Number(o.strike)/1e18, collateral: Number(o.collateral)/1e18,
+            premium: Number(o.premium)/1e18, expiry: Number(o.expiry)});
+        }
+      } catch(e){}
+    }
+
+    // Scan binary bets
+    const binStart = Math.max(0, Number(binCount) - 50);
+    for(let i = binStart; i < Number(binCount); i++){
+      try {
+        const b = await binaryContract.binaries(i);
+        if(b.bettor.toLowerCase() === walletAddress.toLowerCase() && b.status === 0n){
+          const payoutMult = CHAIN_CONSTANTS.payoutBps / 10000;
+          positions.push({type:'BINARY', id:i, ticker:b.ticker,
+            strike: Number(b.strike)/1e18, betSize: Number(b.betSize)/1e18,
+            direction: Number(b.direction) === 0 ? 'ABOVE' : 'BELOW',
+            payout: (Number(b.betSize)/1e18 * payoutMult).toFixed(2),
+            expiry: Number(b.expiry)});
+        }
+      } catch(e){}
+    }
+
+    // Also check vault shares
+    try {
+      const shares = await vaultContract.balanceOf(walletAddress);
+      if(shares > 0n){
+        const usdgValue = await vaultContract.previewWithdraw(shares);
+        positions.push({type:'VAULT',
+          shares: Number(shares)/1e18,
+          value: Number(usdgValue)/1e18
+        });
+      }
+    } catch(e){}
+
+    renderPositions(positions);
+  } catch(e){ console.warn('fetchPositions failed:', e.message); }
+}
+
+function renderPositions(positions){
+  const list = document.getElementById('positionsList');
+  const count = document.getElementById('posCount');
+  if(!list) return;
+  count.textContent = positions.length;
+
+  if(positions.length === 0){
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:24px 0;text-align:center;">No open positions</div>';
+    return;
+  }
+
+  const expiryStr = ts => {
+    const d = new Date(ts * 1000);
+    const diff = Math.round((ts - Date.now()/1000) / 3600);
+    return diff > 24 ? `${Math.round(diff/24)}D` : `${diff}H`;
+  };
+
+  list.innerHTML = positions.map(p => {
+    if(p.type === 'CALL') return `
+      <div class="pos-card">
+        <div class="pos-card-head"><span class="pos-ticker">${p.ticker}</span><span class="pos-badge call">CALL #${p.id}</span></div>
+        <div class="pos-row"><span class="k">Strike</span><span class="v">$${p.strike.toFixed(2)}</span></div>
+        <div class="pos-row"><span class="k">Expiry</span><span class="v">${expiryStr(p.expiry)}</span></div>
+        <div class="pos-row"><span class="k">Collateral</span><span class="v">${p.collateral.toFixed(0)} USDG</span></div>
+        <div class="pos-row"><span class="k">Premium set</span><span class="v pos">${p.premium.toFixed(2)} USDG</span></div>
+        <div class="pos-actions"><button class="pos-btn" onclick="expireOption('call',${p.id})">Expire</button><button class="pos-btn close" onclick="cancelOption('call',${p.id})">Cancel</button></div>
+      </div>`;
+    if(p.type === 'PUT') return `
+      <div class="pos-card">
+        <div class="pos-card-head"><span class="pos-ticker">${p.ticker}</span><span class="pos-badge put">PUT #${p.id}</span></div>
+        <div class="pos-row"><span class="k">Strike</span><span class="v">$${p.strike.toFixed(2)}</span></div>
+        <div class="pos-row"><span class="k">Expiry</span><span class="v">${expiryStr(p.expiry)}</span></div>
+        <div class="pos-row"><span class="k">Collateral</span><span class="v">${p.collateral.toFixed(0)} USDG</span></div>
+        <div class="pos-row"><span class="k">Premium set</span><span class="v pos">${p.premium.toFixed(2)} USDG</span></div>
+        <div class="pos-actions"><button class="pos-btn" onclick="expireOption('put',${p.id})">Expire</button><button class="pos-btn close" onclick="cancelOption('put',${p.id})">Cancel</button></div>
+      </div>`;
+    if(p.type === 'BINARY') return `
+      <div class="pos-card">
+        <div class="pos-card-head"><span class="pos-ticker">${p.ticker}</span><span class="pos-badge binary">BINARY #${p.id}</span></div>
+        <div class="pos-row"><span class="k">Direction</span><span class="v" style="color:${p.direction==='ABOVE'?'var(--green)':'var(--red)'}">${p.direction} $${p.strike.toFixed(2)}</span></div>
+        <div class="pos-row"><span class="k">Expiry</span><span class="v">${expiryStr(p.expiry)}</span></div>
+        <div class="pos-row"><span class="k">Bet</span><span class="v">${p.betSize.toFixed(2)} USDG</span></div>
+        <div class="pos-row"><span class="k">Max Payout</span><span class="v pos">${p.payout} USDG</span></div>
+        <div class="pos-actions"><button class="pos-btn" onclick="settleBet(${p.id})">Settle</button></div>
+      </div>`;
+    if(p.type === 'VAULT') return `
+      <div class="pos-card">
+        <div class="pos-card-head"><span class="pos-ticker">VAULT</span><span class="pos-badge vault">VAULT</span></div>
+        <div class="pos-row"><span class="k">Shares (xUSDG)</span><span class="v">${p.shares.toFixed(4)}</span></div>
+        <div class="pos-row"><span class="k">USDG value</span><span class="v pos">${p.value.toFixed(2)} USDG</span></div>
+        <div class="pos-actions"><button class="pos-btn close" onclick="withdrawVault(${p.shares})">Withdraw</button></div>
+      </div>`;
+    return '';
+  }).join('');
+}
+
+async function expireOption(type, id){
+  if(!signer) return;
+  try {
+    showToast('Expiring…');
+    const c = type === 'call'
+      ? coveredCallContract.connect(signer)
+      : cashPutContract.connect(signer);
+    const tx = await c.expire(id);
+    await tx.wait();
+    showToast('✓ Collateral returned!');
+    await fetchPositions();
+  } catch(err){ showToast('Error: ' + (err.reason || err.shortMessage || err.message)); }
+}
+
+async function cancelOption(type, id){
+  if(!signer) return;
+  try {
+    showToast('Cancelling…');
+    const c = type === 'call'
+      ? coveredCallContract.connect(signer)
+      : cashPutContract.connect(signer);
+    const tx = await c.cancel(id);
+    await tx.wait();
+    showToast('✓ Option cancelled, collateral returned!');
+    await fetchPositions();
+  } catch(err){ showToast('Error: ' + (err.reason || err.shortMessage || err.message)); }
+}
+
+async function settleBet(id){
+  if(!signer) return;
+  try {
+    showToast('Settling…');
+    const tx = await binaryContract.connect(signer).settle(id);
+    await tx.wait();
+    showToast('✓ Bet settled!');
+    await fetchPositions();
+    await fetchReservePool();
+  } catch(err){ showToast('Error: ' + (err.reason || err.shortMessage || err.message)); }
+}
+
+async function withdrawVault(shares){
+  if(!signer) return;
+  try {
+    const sharesToBurn = ethers.parseUnits(shares.toFixed(18), 18);
+    showToast('Withdrawing…');
+    const tx = await vaultContract.connect(signer).withdraw(sharesToBurn);
+    await tx.wait();
+    showToast('✓ Withdrawn from vault!');
+    await fetchVaultStats();
+    await fetchPositions();
+  } catch(err){ showToast('Error: ' + (err.reason || err.shortMessage || err.message)); }
 }
 
 function showMockPositions(){
@@ -1143,7 +1426,8 @@ document.getElementById('collateralInput').addEventListener('input', updatePremi
 document.getElementById('mktSearch').addEventListener('input', renderList);
 document.getElementById('binSize').addEventListener('input',()=>{
   const size = parseFloat(document.getElementById('binSize').value||0);
-  document.getElementById('binPayout').textContent = (size*1.85).toFixed(2)+' USDG';
+  const mult = CHAIN_CONSTANTS.payoutBps / 10000;
+  document.getElementById('binPayout').textContent = (size*mult).toFixed(2)+' USDG';
 });
 
 // ===== ORACLE REFRESH EVERY 30s =====
