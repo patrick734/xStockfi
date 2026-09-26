@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Launch App · xStockFi</title>
+<meta name="description" content="xStockFi trading app — on-chain options on tokenized stocks.">
+<meta name="theme-color" content="#18191c">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    color-scheme:dark;
+    --char:#18191c;--char-2:#1f2126;--panel:#22252c;
+    --ink:#f2f4f8;--ink-2:#c9cfda;--muted:#8a92a2;
+    --accent:#7c3aff;--accent-hi:#a78bfa;
+    --line:rgba(255,255,255,.1);
+    --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+    --body:"Geist","Helvetica Neue",Arial,sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+    --gut:clamp(16px,4vw,48px);--max:1180px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--char);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100svh;display:flex;flex-direction:column;}
+  a{color:inherit;text-decoration:none}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px var(--gut);border-bottom:1px solid var(--line);}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em}
+  .brand svg{width:28px;height:28px}
+  .brand .x{color:var(--accent-hi)}
+  .back{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;transition:color .2s}
+  .back:hover{color:var(--ink)}
+  .back svg{width:16px;height:16px}
+
+  main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--gut);text-align:center;gap:0;position:relative;overflow:hidden;}
+  .glow{position:absolute;inset:0;pointer-events:none;z-index:0}
+  .glow::before{content:"";position:absolute;width:60vmax;height:60vmax;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(124,58,255,.18),rgba(124,58,255,0));filter:blur(40px);}
+  .inner{position:relative;z-index:1;display:grid;gap:24px;align-items:center;justify-items:center;max-width:520px;}
+
+  .soon-badge{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-hi);border:1px solid rgba(167,139,250,.4);border-radius:999px;padding:6px 14px;display:inline-flex;align-items:center;gap:8px;}
+  .soon-badge i{width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 8px var(--accent-hi);animation:pulse 2.4s ease-in-out infinite;flex:none;}
+  @keyframes pulse{50%{opacity:.35}}
+
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,6vw,64px);letter-spacing:-.04em;line-height:1;margin:0;text-wrap:balance;}
+  .sub{color:var(--ink-2);font-size:18px;margin:0;max-width:42ch;text-wrap:balance;}
+
+  .form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;}
+  .form input{
+    flex:1;min-width:220px;padding:13px 18px;border-radius:999px;border:1px solid var(--line);
+    background:rgba(255,255,255,.06);color:var(--ink);font-family:var(--body);font-size:15px;
+    outline:none;transition:border-color .2s;
+  }
+  .form input::placeholder{color:var(--muted)}
+  .form input:focus{border-color:rgba(167,139,250,.5)}
+  .form button{
+    padding:13px 26px;border-radius:999px;border:none;cursor:pointer;
+    background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
+    color:#fff;font:500 15px/1 var(--body);
+    box-shadow:0 0 0 1px rgba(255,255,255,.14) inset,0 10px 34px -8px rgba(124,58,255,.7);
+    transition:transform .2s,box-shadow .2s;
+  }
+  .form button:hover{transform:translateY(-1px);box-shadow:0 0 0 1px rgba(255,255,255,.2) inset,0 14px 44px -8px rgba(124,58,255,.9)}
+
+  .note{font-size:13px;color:var(--muted);margin:0;}
+  .features{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px;margin:0;padding:0;list-style:none;}
+  .features li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);}
+  .features li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;}
+
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px)+24px);transform:translateX(-50%);background:var(--ink);color:var(--char);padding:10px 16px;border-radius:999px;font-size:14px;z-index:20;}
+
+  footer{padding:24px var(--gut);border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  footer a{color:var(--muted);transition:color .2s;}
+  footer a:hover{color:var(--ink)}
+  .foot-links{display:flex;gap:20px;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="index.html">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c3aff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+      <path d="M4 8h10l4 8 4-8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 24h10l4-8 4 8h6" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span><span class="x">x</span>StockFi</span>
+  </a>
+  <a class="back" href="index.html">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4L6 8l4 4"/></svg>
+    Back to site
+  </a>
+</header>
+
+<main>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="inner">
+    <span class="soon-badge"><i></i>Coming soon</span>
+    <h1>The app is almost ready.</h1>
+    <p class="sub">xStockFi is in final testing. Drop your email and we'll notify you the moment trading goes live.</p>
+
+    <form class="form" id="waitlist-form" novalidate>
+      <input type="email" id="email" placeholder="your@email.com" autocomplete="email" required>
+      <button type="submit">Notify me</button>
+    </form>
+    <p class="note">No spam. One email when we launch.</p>
+
+    <ul class="features">
+      <li>Covered calls</li>
+      <li>Cash-secured puts</li>
+      <li>Binary options</li>
+      <li>Yield vault</li>
+      <li>No KYC</li>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  <span>© <span id="yr"></span> xStockFi</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="index.html">Home</a>
+    <a href="docs.html">Docs</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a>
+  </nav>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+document.getElementById('waitlist-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  if(!email) return;
+  // TODO: wire to your email service (e.g. Mailchimp, Resend, ConvertKit)
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = "You're on the list!";
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2200);
+  document.getElementById('email').value = '';
+});
+</script>
+</body>
+</html>
