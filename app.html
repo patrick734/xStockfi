@@ -1277,9 +1277,11 @@ async function executeTrade(){
 
       const strike  = ethers.parseUnits(strikeRaw.toFixed(18), 18);
       const amount  = ethers.parseUnits(amountRaw.toFixed(18), 18);
-      const expiryBtn  = document.querySelector('#formBinary .expiry-btn.active');
-      const expiryDays = expiryBtn ? parseInt(expiryBtn.textContent)||1 : 1;
-      const expiry  = BigInt(Math.floor(Date.now()/1000) + expiryDays * 86400);
+      const expiryBtn = document.querySelector('#formBinary .expiry-btn.active');
+      const expiryTxt = expiryBtn ? expiryBtn.textContent.trim() : '1D';
+      const expiryVal = parseInt(expiryTxt) || 1;
+      const expirySecs = expiryTxt.endsWith('H') ? expiryVal * 3600 : expiryVal * 86400;
+      const expiry  = BigInt(Math.floor(Date.now()/1000) + expirySecs);
       // Direction enum: 0 = Above, 1 = Below
       const direction = binaryDir === 'up' ? 0 : 1;
 
