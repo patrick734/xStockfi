@@ -2,8 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+window.XSTOCKFI = {
+  chainId: 4663,
+  rpc: "https://rpc.mainnet.chain.robinhood.com",
+  explorer: "https://robinhoodchain.blockscout.com",
+  contracts: {
+    oracleReader:   "0xE018d4198De48F23Ab96374B40eBfDa81c8cbf73",
+    coveredCall:    "0x60D0E935713b65A52986767CDBD9c558C441b4D3",
+    cashSecuredPut: "0xE4b6e2AC005E4F99dd80Ed53Fe494844de0e6eEa",
+    binaryOption:   "0x51278e6e4724911E659222c2Eb772d82e55fA201",
+    yieldVault:     "0xac0Dbd4940fD74d8f3A3b504996f0492634f9C6a",
+    usdg:           "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168"
+  }
+};
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Launch App · xStockFi</title>
+<title>App · xStockFi</title>
 <meta name="description" content="xStockFi trading app — on-chain options on tokenized stocks.">
 <meta name="theme-color" content="#18191c">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -11,74 +26,455 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-  :root{
-    color-scheme:dark;
-    --char:#18191c;--char-2:#1f2126;--panel:#22252c;
-    --ink:#f2f4f8;--ink-2:#c9cfda;--muted:#8a92a2;
-    --accent:#7c3aff;--accent-hi:#a78bfa;
-    --line:rgba(255,255,255,.1);
-    --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
-    --body:"Geist","Helvetica Neue",Arial,sans-serif;
-    --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-    --gut:clamp(16px,4vw,48px);--max:1180px;
+:root{
+  color-scheme:dark;
+  --char:#18191c;--char-2:#1f2126;--panel:#22252c;--panel-2:#272b33;
+  --ink:#f2f4f8;--ink-2:#c9cfda;--muted:#8a92a2;--muted-2:#606878;
+  --accent:#7c3aff;--accent-hi:#a78bfa;--accent-dim:rgba(124,58,255,.18);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.15);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.15);
+  --line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.05);
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Geist","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --header-h:52px;--nav-h:44px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--char);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden;display:flex;flex-direction:column;}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--body);cursor:pointer;border:none;background:none;color:inherit;}
+input{font-family:var(--mono);border:none;outline:none;background:none;color:inherit;}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  height:var(--header-h);flex:none;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;border-bottom:1px solid var(--line);
+  background:var(--char);z-index:20;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.02em;flex:none;}
+.brand svg{width:24px;height:24px}
+.brand .x{color:var(--accent-hi)}
+.topbar-nav{display:flex;gap:2px;background:var(--panel);border-radius:8px;padding:3px;}
+.topbar-nav a{
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  padding:5px 12px;border-radius:6px;color:var(--muted);transition:all .15s;
+}
+.topbar-nav a:hover{color:var(--ink)}
+.topbar-nav a.active{background:var(--panel-2);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.topbar-right{display:flex;align-items:center;gap:10px;flex:none;}
+.chain-badge{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:5px 10px;}
+.chain-badge i{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);flex:none;animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{50%{opacity:.35}}
+.btn-connect{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;
+  background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
+  color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset;
+  transition:opacity .2s;
+}
+.btn-connect:hover{opacity:.85}
+.btn-connect svg{width:14px;height:14px}
+.wallet-connected{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:12px;}
+.wallet-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;}
+
+/* ===== STATS STRIP ===== */
+.stats-strip{
+  flex:none;height:34px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:0;overflow-x:auto;
+  padding:0 16px;background:var(--char-2);
+}
+.stat-item{display:flex;align-items:center;gap:8px;padding:0 16px;white-space:nowrap;font-family:var(--mono);font-size:11px;}
+.stat-item:not(:last-child){border-right:1px solid var(--line);}
+.stat-item .label{color:var(--muted)}
+.stat-item .val{color:var(--ink)}
+.stat-item .up{color:var(--green)}
+
+/* ===== MAIN LAYOUT ===== */
+.app-body{flex:1;display:flex;overflow:hidden;}
+
+/* ===== SIDEBAR: MARKETS ===== */
+.sidebar{
+  width:240px;flex:none;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--char);
+}
+.sidebar-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;}
+.sidebar-title{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.search-box{display:flex;align-items:center;gap:6px;background:var(--panel);border-radius:6px;padding:6px 10px;border:1px solid var(--line);}
+.search-box svg{width:13px;height:13px;stroke:var(--muted);flex:none;}
+.search-box input{font-size:12px;width:100%;color:var(--ink);}
+.search-box input::placeholder{color:var(--muted-2);}
+.cat-tabs{display:flex;gap:4px;}
+.cat-tab{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 8px;border-radius:4px;color:var(--muted);background:transparent;border:1px solid transparent;transition:all .15s;}
+.cat-tab:hover{color:var(--ink)}
+.cat-tab.active{background:var(--accent-dim);border-color:rgba(167,139,250,.3);color:var(--accent-hi);}
+.market-list{flex:1;overflow-y:auto;}
+.market-list::-webkit-scrollbar{width:3px}
+.market-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.mkt-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line-2);
+  transition:background .15s;
+}
+.mkt-row:hover{background:var(--panel)}
+.mkt-row.active{background:var(--accent-dim);border-left:2px solid var(--accent-hi);}
+.mkt-left{display:flex;align-items:center;gap:8px;}
+.ticker{font-family:var(--mono);font-size:12px;color:var(--ink);font-weight:500;min-width:38px;}
+.mkt-name{font-size:11px;color:var(--muted);}
+.mkt-right{text-align:right;}
+.mkt-price{font-family:var(--mono);font-size:12px;color:var(--ink);}
+.mkt-chg{font-family:var(--mono);font-size:10px;}
+.mkt-chg.up{color:var(--green)}
+.mkt-chg.dn{color:var(--red)}
+
+/* ===== MAIN CONTENT ===== */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* product tabs */
+.prod-tabs{flex:none;display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--char);}
+.prod-tab{
+  padding:10px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;
+}
+.prod-tab:hover{color:var(--ink)}
+.prod-tab.active{color:var(--accent-hi);border-bottom-color:var(--accent-hi);}
+
+/* content area */
+.content-area{flex:1;display:flex;overflow:hidden;}
+
+/* trade panel */
+.trade-panel{flex:1;overflow-y:auto;padding:20px;}
+.trade-panel::-webkit-scrollbar{width:3px}
+.trade-panel::-webkit-scrollbar-thumb{background:var(--line)}
+
+/* market header */
+.mkt-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;}
+.mkt-header-left h2{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:2px;}
+.mkt-header-left .full-name{font-size:13px;color:var(--muted);}
+.mkt-price-big{font-family:var(--mono);font-size:28px;font-weight:500;letter-spacing:-.02em;}
+.mkt-price-chg{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.mkt-price-chg .chg{font-family:var(--mono);font-size:13px;}
+.oracle-info{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;}
+.oracle-dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex:none;}
+
+/* price chart placeholder */
+.chart-area{
+  height:160px;border-radius:10px;border:1px solid var(--line);
+  background:var(--panel);margin-bottom:20px;position:relative;overflow:hidden;
+  display:flex;align-items:flex-end;
+}
+.chart-bars{display:flex;align-items:flex-end;gap:2px;padding:12px 12px 0;width:100%;height:100%;}
+.chart-bar{flex:1;border-radius:2px 2px 0 0;min-height:4px;transition:opacity .2s;}
+.chart-bar.up{background:linear-gradient(180deg,rgba(34,197,94,.6),rgba(34,197,94,.15));}
+.chart-bar.dn{background:linear-gradient(180deg,rgba(239,68,68,.5),rgba(239,68,68,.1));}
+.chart-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.chart-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+/* order form */
+.order-form{background:var(--panel);border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:16px;}
+.order-form-head{display:flex;border-bottom:1px solid var(--line);}
+.order-side{flex:1;padding:10px;text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.order-side.buy{color:var(--green);}
+.order-side.sell{color:var(--muted);}
+.order-side.active.buy{background:var(--green-dim);color:var(--green);}
+.order-side.active.sell{background:var(--red-dim);color:var(--red);}
+.order-body{padding:16px;display:grid;gap:12px;}
+.field-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field{background:var(--char-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+.field input{font-size:14px;width:100%;}
+.field .unit{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;}
+.expiry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.expiry-btn{
+  padding:7px 4px;border-radius:6px;border:1px solid var(--line);
+  background:var(--char-2);font-family:var(--mono);font-size:11px;
+  color:var(--muted);cursor:pointer;transition:all .15s;text-align:center;
+}
+.expiry-btn:hover{border-color:rgba(167,139,250,.3);color:var(--ink)}
+.expiry-btn.active{background:var(--accent-dim);border-color:rgba(167,139,250,.4);color:var(--accent-hi);}
+.premium-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);}
+.premium-row .label{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.premium-row .val{font-family:var(--mono);font-size:13px;color:var(--ink);}
+.btn-trade{
+  width:100%;padding:13px;border-radius:8px;font-size:14px;font-weight:500;
+  background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
+  color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset,0 8px 24px -8px rgba(124,58,255,.6);
+  transition:opacity .2s,transform .2s;
+}
+.btn-trade:hover{opacity:.9;transform:translateY(-1px)}
+.btn-trade:active{transform:none}
+.btn-trade.sell-mode{background:linear-gradient(90deg,#b91c1c,#ef4444);}
+
+/* info rows */
+.info-card{background:var(--panel);border-radius:10px;border:1px solid var(--line);padding:14px;display:grid;gap:8px;margin-bottom:16px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+.info-row .k{color:var(--muted);}
+.info-row .v{font-family:var(--mono);}
+.info-row .v.accent{color:var(--accent-hi);}
+
+/* positions panel */
+.positions-panel{width:320px;flex:none;border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;background:var(--char);}
+.positions-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.positions-head h3{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.pos-count{background:var(--accent-dim);border:1px solid rgba(167,139,250,.3);color:var(--accent-hi);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:999px;}
+.positions-tabs{display:flex;border-bottom:1px solid var(--line);}
+.pos-tab{flex:1;padding:8px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.pos-tab.active{color:var(--accent-hi);border-bottom-color:var(--accent-hi);}
+.positions-list{flex:1;overflow-y:auto;padding:10px;}
+.positions-list::-webkit-scrollbar{width:3px}
+.positions-list::-webkit-scrollbar-thumb{background:var(--line)}
+.pos-card{background:var(--panel);border-radius:8px;border:1px solid var(--line);padding:12px;margin-bottom:8px;}
+.pos-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.pos-badge{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:4px;font-weight:500;}
+.pos-badge.call{background:var(--green-dim);color:var(--green);}
+.pos-badge.put{background:var(--red-dim);color:var(--red);}
+.pos-badge.binary{background:var(--accent-dim);color:var(--accent-hi);}
+.pos-badge.vault{background:rgba(234,179,8,.15);color:#eab308;}
+.pos-ticker{font-family:var(--mono);font-size:13px;font-weight:500;}
+.pos-row{display:flex;justify-content:space-between;font-size:11px;margin-top:4px;}
+.pos-row .k{color:var(--muted);}
+.pos-row .v{font-family:var(--mono);}
+.pos-row .v.pos{color:var(--green);}
+.pos-row .v.neg{color:var(--red);}
+.pos-actions{display:flex;gap:6px;margin-top:10px;}
+.pos-btn{flex:1;padding:6px;border-radius:6px;border:1px solid var(--line);background:var(--char-2);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all .15s;text-align:center;}
+.pos-btn:hover{border-color:rgba(167,139,250,.3);color:var(--ink)}
+.pos-btn.close{color:var(--red);border-color:rgba(239,68,68,.3);}
+.pos-btn.close:hover{background:var(--red-dim);}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:8px;color:var(--muted);}
+.empty-state svg{width:32px;height:32px;opacity:.4;}
+.empty-state p{font-size:12px;}
+
+/* connect overlay */
+.connect-overlay{
+  position:fixed;inset:0;z-index:9999;background:rgba(12,14,18,.7);
+  backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+}
+.connect-modal{
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:28px;width:340px;max-width:calc(100vw - 32px);
+  box-shadow:0 24px 80px rgba(0,0,0,.5);
+}
+.connect-modal h2{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px;}
+.connect-modal p{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.wallet-list{display:grid;gap:8px;margin-bottom:16px;}
+.wallet-opt{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;
+  border:1px solid var(--line);background:var(--char-2);cursor:pointer;transition:all .2s;
+}
+.wallet-opt:hover{border-color:rgba(167,139,250,.4);background:var(--accent-dim);}
+.wallet-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;}
+.wallet-info{flex:1;}
+.wallet-name{font-size:14px;font-weight:500;}
+.wallet-sub{font-size:11px;color:var(--muted);}
+.modal-note{font-size:11px;color:var(--muted-2);text-align:center;}
+.modal-close{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;background:var(--char-2);}
+.modal-close:hover{color:var(--ink)}
+.connect-modal{position:relative;}
+
+/* binary section */
+.binary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.binary-card{
+  border-radius:12px;border:1px solid var(--line);padding:18px;cursor:pointer;
+  background:var(--panel);transition:all .2s;text-align:center;
+}
+.binary-card:hover{border-color:rgba(167,139,250,.3);}
+.binary-card.up-card:hover{border-color:rgba(34,197,94,.4);background:var(--green-dim);}
+.binary-card.dn-card:hover{border-color:rgba(239,68,68,.4);background:var(--red-dim);}
+.binary-card.selected-up{border-color:var(--green);background:var(--green-dim);}
+.binary-card.selected-dn{border-color:var(--red);background:var(--red-dim);}
+.binary-arrow{font-size:28px;margin-bottom:6px;}
+.binary-label{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;}
+.binary-label.up{color:var(--green)}
+.binary-label.dn{color:var(--red)}
+.binary-payout{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* vault section */
+.vault-card{background:var(--panel);border-radius:12px;border:1px solid var(--line);padding:20px;margin-bottom:16px;}
+.vault-title{font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:4px;}
+.vault-desc{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.vault-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.vault-stat b{font-family:var(--mono);font-size:16px;display:block;}
+.vault-stat span{font-size:11px;color:var(--muted);}
+.apy{color:var(--green);}
+
+/* no-feed dim */
+.mkt-row.no-feed{opacity:.38;}
+.mkt-row.no-feed .mkt-price{color:var(--muted);}
+
+/* scrollbar global */
+*::-webkit-scrollbar{width:4px;height:4px;}
+*::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+/* toast notifications */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--panel-2);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--mono);font-size:12px;
+  padding:10px 18px;border-radius:8px;z-index:999;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  animation:fadeup .2s ease;pointer-events:none;
+  white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;
+}
+@keyframes fadeup{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+@media(max-width:900px){
+  .positions-panel{display:none}
+  .sidebar{width:200px}
+}
+@media(max-width:640px){
+  .sidebar{display:none}
+  .topbar-nav{display:none}
+}
+
+/* ===== MOBILE LAYOUT ===== */
+@media(max-width:600px){
+  :root{--header-h:48px}
+
+  /* body scrolls on mobile instead of fixed panels */
+  body{overflow:auto;overflow-x:hidden;padding-bottom:64px;}
+  .app-body{flex-direction:column;overflow:visible;height:auto;}
+  .main{overflow:visible;}
+
+  /* topbar compact */
+  .topbar{padding:0 12px;gap:8px;}
+  .chain-badge{display:none}
+  .btn-connect{padding:6px 12px;font-size:12px;}
+  .wallet-connected{font-size:11px;padding:5px 10px;}
+
+  /* stats strip scrollable */
+  .stats-strip{padding:0 12px;gap:0;}
+  .stat-item{padding:0 10px;}
+
+  /* trade panel full width */
+  .trade-panel{padding:12px;}
+
+  /* market header stacked */
+  .mkt-header{flex-direction:column;gap:8px;margin-bottom:14px;}
+  .mkt-header > div:last-child{text-align:left;}
+  .mkt-price-big{font-size:22px;}
+
+  /* chart smaller */
+  .chart-area{height:110px;margin-bottom:14px;}
+
+  /* form fields full width */
+  .field-row{grid-template-columns:1fr;}
+  .expiry-grid{grid-template-columns:repeat(4,1fr);}
+
+  /* binary cards */
+  .binary-grid{gap:8px;margin-bottom:12px;}
+  .binary-card{padding:14px;}
+  .binary-arrow{font-size:22px;margin-bottom:4px;}
+
+  /* product tabs scrollable */
+  .prod-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .prod-tabs::-webkit-scrollbar{display:none}
+  .prod-tab{white-space:nowrap;padding:10px 14px;font-size:10px;}
+
+  /* vault stats 2 col on mobile */
+  .vault-stats{grid-template-columns:1fr 1fr;gap:8px;}
+
+  /* info card smaller */
+  .info-card{padding:12px;}
+  .info-row{font-size:11px;}
+
+  /* bottom nav for market list on mobile */
+  .mobile-market-bar{
+    display:flex;align-items:center;gap:0;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    padding:6px 12px;gap:6px;
+    border-bottom:1px solid var(--line);
+    background:var(--char-2);
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--char);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100svh;display:flex;flex-direction:column;}
-  a{color:inherit;text-decoration:none}
-
-  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px var(--gut);border-bottom:1px solid var(--line);}
-  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em}
-  .brand svg{width:28px;height:28px}
-  .brand .x{color:var(--accent-hi)}
-  .back{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;transition:color .2s}
-  .back:hover{color:var(--ink)}
-  .back svg{width:16px;height:16px}
-
-  main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--gut);text-align:center;gap:0;position:relative;overflow:hidden;}
-  .glow{position:absolute;inset:0;pointer-events:none;z-index:0}
-  .glow::before{content:"";position:absolute;width:60vmax;height:60vmax;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(124,58,255,.18),rgba(124,58,255,0));filter:blur(40px);}
-  .inner{position:relative;z-index:1;display:grid;gap:24px;align-items:center;justify-items:center;max-width:520px;}
-
-  .soon-badge{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-hi);border:1px solid rgba(167,139,250,.4);border-radius:999px;padding:6px 14px;display:inline-flex;align-items:center;gap:8px;}
-  .soon-badge i{width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 8px var(--accent-hi);animation:pulse 2.4s ease-in-out infinite;flex:none;}
-  @keyframes pulse{50%{opacity:.35}}
-
-  h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,6vw,64px);letter-spacing:-.04em;line-height:1;margin:0;text-wrap:balance;}
-  .sub{color:var(--ink-2);font-size:18px;margin:0;max-width:42ch;text-wrap:balance;}
-
-  .form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;}
-  .form input{
-    flex:1;min-width:220px;padding:13px 18px;border-radius:999px;border:1px solid var(--line);
-    background:rgba(255,255,255,.06);color:var(--ink);font-family:var(--body);font-size:15px;
-    outline:none;transition:border-color .2s;
+  .mobile-market-bar::-webkit-scrollbar{display:none}
+  .mob-mkt{
+    flex:none;display:flex;align-items:center;gap:6px;
+    padding:6px 10px;border-radius:6px;border:1px solid transparent;
+    font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;
+    background:var(--panel);white-space:nowrap;
   }
-  .form input::placeholder{color:var(--muted)}
-  .form input:focus{border-color:rgba(167,139,250,.5)}
-  .form button{
-    padding:13px 26px;border-radius:999px;border:none;cursor:pointer;
-    background:linear-gradient(90deg,#5b1eff,#7c3aff 60%,#a78bfa);
-    color:#fff;font:500 15px/1 var(--body);
-    box-shadow:0 0 0 1px rgba(255,255,255,.14) inset,0 10px 34px -8px rgba(124,58,255,.7);
-    transition:transform .2s,box-shadow .2s;
+  .mob-mkt.active{border-color:rgba(167,139,250,.4);background:var(--accent-dim);color:var(--accent-hi);}
+  .mob-mkt .mp{color:var(--muted);font-size:10px;}
+  .mob-mkt.active .mp{color:var(--accent-hi);}
+
+  /* positions bottom sheet toggle */
+  .pos-toggle{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;border-top:1px solid var(--line);
+    background:var(--char-2);cursor:pointer;
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
   }
-  .form button:hover{transform:translateY(-1px);box-shadow:0 0 0 1px rgba(255,255,255,.2) inset,0 14px 44px -8px rgba(124,58,255,.9)}
+  .pos-toggle svg{width:14px;height:14px;stroke:var(--muted);transition:transform .2s;}
+  .pos-toggle.open svg{transform:rotate(180deg);}
+  .mobile-positions{
+    border-top:1px solid var(--line);
+    overflow:hidden;max-height:0;transition:max-height .3s ease;
+  }
+  .mobile-positions.open{max-height:600px;}
+  .mobile-positions .positions-list{padding:10px 12px;max-height:400px;overflow-y:auto;}
+}
+/* hide mobile elements on desktop */
+.mobile-market-bar,.pos-toggle,.mobile-positions{display:none;}
+@media(max-width:600px){
+  .mobile-market-bar,.pos-toggle,.mobile-positions{display:block;}
+  .mobile-market-bar{display:flex;}
+  .content-area{flex-direction:column;}
+  .positions-panel{display:none!important;}
+  .stats-strip{display:none;}
+}
 
-  .note{font-size:13px;color:var(--muted);margin:0;}
-  .features{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px;margin:0;padding:0;list-style:none;}
-  .features li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);}
-  .features li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;}
-
-  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px)+24px);transform:translateX(-50%);background:var(--ink);color:var(--char);padding:10px 16px;border-radius:999px;font-size:14px;z-index:20;}
-
-  footer{padding:24px var(--gut);border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-  footer a{color:var(--muted);transition:color .2s;}
-  footer a:hover{color:var(--ink)}
-  .foot-links{display:flex;gap:20px;}
+/* ===== ADDED: wallet pill, network banner, chart, states ===== */
+[hidden]{display:none!important}
+.wallet-connected{gap:10px}
+.wallet-bal{color:var(--ink-2)}
+.wallet-addr{color:var(--muted)}
+.wallet-dot.warn{background:#eab308;box-shadow:0 0 6px #eab308}
+.wallet-disc{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);background:var(--char-2);}
+.wallet-disc:hover{color:var(--ink)}
+.net-banner{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 16px;background:rgba(234,179,8,.12);border-bottom:1px solid rgba(234,179,8,.3);color:#facc15;font-size:12px;text-align:center;}
+.net-banner button{padding:5px 12px;border-radius:6px;background:#eab308;color:#18191c;font-size:12px;font-weight:500;}
+.mkt-header-right{text-align:right}
+.chg-label{font-family:var(--mono);font-size:10px;color:var(--muted-2);letter-spacing:.06em;text-transform:uppercase;}
+.oracle-dot.stale{background:#eab308}
+.oracle-dot.off{background:var(--muted-2)}
+.chart-area{display:block}
+.chart-svg{position:absolute;inset:0;width:100%;height:100%;}
+.chart-cap{position:absolute;left:10px;right:10px;top:6px;bottom:6px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;pointer-events:none;font-family:var(--mono);font-size:10px;color:var(--muted);}
+.chart-cap span:nth-child(2){position:absolute;left:0;bottom:0;color:var(--muted-2)}
+.btn-trade:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-trade[data-busy]{opacity:.7;cursor:progress}
+.pos-btn:disabled{opacity:.55;cursor:default;border-color:var(--line);color:var(--muted)}
+.pos-btn:disabled:hover{color:var(--muted);border-color:var(--line)}
+.opt-detail{display:grid;gap:6px;background:var(--char-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+.info-row .v.pos{color:var(--green)} .info-row .v.neg{color:var(--red)}
+.max-btn{margin-left:6px;font-family:var(--mono);font-size:10px;color:var(--accent-hi);border:1px solid rgba(167,139,250,.35);border-radius:4px;padding:0 5px;}
+.wallet-opt{width:100%;text-align:left;font:inherit;color:inherit}
+.wallet-opt.missing{opacity:.6}
+.wallet-icon img{width:24px;height:24px;border-radius:6px}
+.wallet-icon{font-family:var(--mono);font-weight:700;font-size:18px;color:#fff}
+.list-empty{padding:20px 12px;color:var(--muted);font-size:12px;text-align:center}
+.empty-state{text-align:center}
+.mob-mkt.no-feed{opacity:.45}
+.positions-panel.flash{animation:flash 1.2s ease}
+@keyframes flash{0%,100%{box-shadow:none}30%{box-shadow:inset 0 0 0 2px var(--accent-hi)}}
+.mobile-pos-tabs{display:flex}
+@media(max-width:600px){
+  .wallet-bal{display:none}
+  .mkt-header-right{text-align:left}
+  /* body is a flex column: without this the positions sheet shrinks to 0px and never opens */
+  .mobile-market-bar,.pos-toggle,.mobile-positions{flex:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
 </style>
 </head>
 <body>
 
-<header>
+<!-- TOP BAR -->
+<header class="topbar">
   <a class="brand" href="index.html">
     <svg viewBox="0 0 32 32" aria-hidden="true">
       <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c3aff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
@@ -87,59 +483,1400 @@
     </svg>
     <span><span class="x">x</span>StockFi</span>
   </a>
-  <a class="back" href="index.html">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4L6 8l4 4"/></svg>
-    Back to site
-  </a>
+
+  <nav class="topbar-nav" aria-label="App sections">
+    <a href="#" class="active" data-section="markets">MARKETS</a>
+    <a href="#" data-section="trade">TRADE</a>
+    <a href="#" data-section="binary">BINARY</a>
+    <a href="#" data-section="vault">VAULT</a>
+    <a href="#" data-section="positions">POSITIONS</a>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="chain-badge" id="chainBadge">
+      <i></i> Robinhood Chain
+    </div>
+    <button class="btn-connect" id="connectBtn" type="button" onclick="showConnect()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 2h4v4M14 2l-6 6M6 4H3a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1v-3"/></svg>
+      Connect Wallet
+    </button>
+    <div class="wallet-connected" id="walletPill" hidden>
+      <span class="wallet-dot" id="walletDot"></span>
+      <span class="wallet-bal" id="walletBal">— USDG</span>
+      <span class="wallet-addr" id="walletAddr"></span>
+      <button class="wallet-disc" type="button" onclick="disconnectWallet()" title="Disconnect" aria-label="Disconnect wallet">✕</button>
+    </div>
+  </div>
 </header>
 
-<main>
-  <div class="glow" aria-hidden="true"></div>
-  <div class="inner">
-    <span class="soon-badge"><i></i>Coming soon</span>
-    <h1>The app is almost ready.</h1>
-    <p class="sub">xStockFi is in final testing. Drop your email and we'll notify you the moment trading goes live.</p>
+<!-- WRONG NETWORK BANNER -->
+<div class="net-banner" id="netBanner" hidden>
+  <span>Your wallet is on the wrong network. Trades only work on Robinhood Chain (ID 4663).</span>
+  <button type="button" onclick="switchToRobinhood()">Switch network</button>
+</div>
 
-    <form class="form" id="waitlist-form" novalidate>
-      <input type="email" id="email" placeholder="your@email.com" autocomplete="email" required>
-      <button type="submit">Notify me</button>
-    </form>
-    <p class="note">No spam. One email when we launch.</p>
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-item"><span class="label">Options Written</span><span class="val" id="stat-pos">—</span></div>
+  <div class="stat-item"><span class="label">Binary Bets</span><span class="val" id="stat-bin">—</span></div>
+  <div class="stat-item"><span class="label">Vault TVL</span><span class="val" id="stat-tvl">—</span></div>
+  <div class="stat-item"><span class="label">Binary Reserve</span><span class="val" id="stat-pool">—</span></div>
+  <div class="stat-item"><span class="label">Oracle</span><span class="up">Chainlink</span></div>
+  <div class="stat-item"><span class="label">Network</span><span class="val">RHC #4663</span></div>
+</div>
 
-    <ul class="features">
-      <li>Covered calls</li>
-      <li>Cash-secured puts</li>
-      <li>Binary options</li>
-      <li>Yield vault</li>
-      <li>No KYC</li>
-    </ul>
+<!-- MOBILE MARKET BAR (shown only on mobile) -->
+<div class="mobile-market-bar" id="mobileMarketBar"></div>
+
+<!-- MAIN BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-title">Markets</span>
+      <div class="search-box">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4"/><path d="m10 10 2.5 2.5"/></svg>
+        <input type="text" placeholder="Search…" id="mktSearch" aria-label="Search markets">
+      </div>
+      <div class="cat-tabs">
+        <button class="cat-tab active" data-cat="all">All</button>
+        <button class="cat-tab" data-cat="tech">Tech</button>
+        <button class="cat-tab" data-cat="etf">ETF</button>
+        <button class="cat-tab" data-cat="other">Other</button>
+      </div>
+    </div>
+    <div class="market-list" id="marketList"></div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <!-- PRODUCT TABS -->
+    <div class="prod-tabs" id="prodTabs">
+      <button class="prod-tab active" data-prod="write">Write Call</button>
+      <button class="prod-tab" data-prod="put">Write Put</button>
+      <button class="prod-tab" data-prod="binary">Binary</button>
+      <button class="prod-tab" data-prod="vault">Yield Vault</button>
+    </div>
+
+    <div class="content-area">
+      <!-- TRADE PANEL -->
+      <div class="trade-panel" id="tradePanel">
+
+        <!-- Market Header -->
+        <div class="mkt-header">
+          <div class="mkt-header-left">
+            <h2 id="mktTitle">NVDA</h2>
+            <div class="full-name" id="mktFullName">NVIDIA</div>
+            <div class="oracle-info">
+              <span class="oracle-dot" id="oracleDot"></span>
+              <span id="oracleTs">Loading oracle…</span>
+            </div>
+          </div>
+          <div class="mkt-header-right">
+            <div class="mkt-price-big" id="mktPriceBig">—</div>
+            <div class="mkt-price-chg">
+              <span class="chg" id="mktChg">—</span>
+              <span class="chg-label">session</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price chart: real oracle samples collected in this browser -->
+        <div class="chart-area" id="chartArea">
+          <svg class="chart-svg" id="chartSvg" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="chart-overlay" id="chartEmpty"><span class="chart-label">Collecting oracle prices…</span></div>
+          <div class="chart-cap" id="chartCap"></div>
+        </div>
+
+        <!-- WRITE CALL / WRITE PUT FORM -->
+        <div id="formWrite">
+          <div class="order-form">
+            <div class="order-form-head">
+              <div class="order-side buy active" id="sideWrite" onclick="setSide('write')">WRITE (SELL)</div>
+              <div class="order-side sell" id="sideBuy" onclick="setSide('buy')">BUY AN OPTION</div>
+            </div>
+            <!-- WRITE BODY -->
+            <div class="order-body" id="writeBody">
+              <div>
+                <div class="field-label">Strike Price</div>
+                <div class="field"><input type="number" id="strikeInput" value="0" step="5" min="0"><div class="unit">USD · Oracle settled</div></div>
+              </div>
+              <div>
+                <div class="field-label">Collateral (USDG)</div>
+                <div class="field"><input type="number" id="collateralInput" value="500" step="10" min="0"><div class="unit" id="collateralHint">USDG</div></div>
+              </div>
+              <div>
+                <div class="field-label">Your Premium Ask (USDG)</div>
+                <div class="field"><input type="number" id="premiumInput" value="25" step="1" min="0"><div class="unit">A buyer pays you this to take the option</div></div>
+              </div>
+              <div>
+                <div class="field-label">Expiry</div>
+                <div class="expiry-grid" id="expiryGrid">
+                  <button class="expiry-btn active" data-secs="86400">1D</button>
+                  <button class="expiry-btn" data-secs="259200">3D</button>
+                  <button class="expiry-btn" data-secs="604800">7D</button>
+                  <button class="expiry-btn" data-secs="1209600">14D</button>
+                </div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Premium yield on collateral</span>
+                <span class="val" id="premiumVal">—</span>
+              </div>
+              <button class="btn-trade" id="writeBtn" type="button" onclick="executeTrade()">Write Call</button>
+            </div>
+            <!-- BUY BODY -->
+            <div class="order-body" id="buyBody" style="display:none">
+              <div>
+                <div class="field-label">Option ID</div>
+                <div class="field"><input type="number" id="buyOptionId" value="" placeholder="e.g. 42" step="1" min="0"><div class="unit" id="buyIdHint">ID of a listed call</div></div>
+              </div>
+              <div class="opt-detail" id="optDetail">
+                <div class="info-row"><span class="k">Enter an ID to load the option</span></div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Cost</span>
+                <span class="val" id="buyPremiumDisplay">—</span>
+              </div>
+              <button class="btn-trade" id="buyBtn" type="button" onclick="executeBuy()">Buy Option</button>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-row"><span class="k">Product</span><span class="v accent" id="infoProduct">Covered Call</span></div>
+            <div class="info-row"><span class="k">Strike</span><span class="v" id="infoStrike">—</span></div>
+            <div class="info-row"><span class="k">Current Price</span><span class="v" id="infoCurrent">—</span></div>
+            <div class="info-row"><span class="k">Settlement</span><span class="v">Chainlink oracle</span></div>
+            <div class="info-row"><span class="k">Protocol Fee</span><span class="v" id="infoFee">—</span></div>
+            <div class="info-row"><span class="k">Max Loss</span><span class="v" id="infoMaxLoss">Collateral only</span></div>
+          </div>
+        </div>
+
+        <!-- BINARY FORM -->
+        <div id="formBinary" style="display:none">
+          <div class="binary-grid">
+            <div class="binary-card up-card" id="binUp" onclick="selectBinary('up')" role="button" tabindex="0">
+              <div class="binary-arrow">↑</div>
+              <div class="binary-label up">ABOVE</div>
+              <div class="binary-payout">— payout</div>
+            </div>
+            <div class="binary-card dn-card" id="binDn" onclick="selectBinary('dn')" role="button" tabindex="0">
+              <div class="binary-arrow">↓</div>
+              <div class="binary-label dn">BELOW</div>
+              <div class="binary-payout">— payout</div>
+            </div>
+          </div>
+          <div class="order-form">
+            <div class="order-body">
+              <div>
+                <div class="field-label">Strike Price</div>
+                <div class="field"><input type="number" id="binStrike" value="0" step="5" min="0"><div class="unit">Settles above or below this at expiry</div></div>
+              </div>
+              <div>
+                <div class="field-label">Bet Size (USDG)</div>
+                <div class="field"><input type="number" id="binSize" value="100" step="10" min="0"><div class="unit" id="binSizeHint">Max loss = bet size</div></div>
+              </div>
+              <div>
+                <div class="field-label">Expiry</div>
+                <div class="expiry-grid">
+                  <button class="expiry-btn active" data-secs="3600">1H</button>
+                  <button class="expiry-btn" data-secs="14400">4H</button>
+                  <button class="expiry-btn" data-secs="86400">1D</button>
+                  <button class="expiry-btn" data-secs="259200">3D</button>
+                </div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Payout if you win</span>
+                <span class="val" style="color:var(--green)" id="binPayout">—</span>
+              </div>
+              <button class="btn-trade" id="binBtn" type="button" onclick="executeTrade()">Place Binary Bet</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VAULT FORM -->
+        <div id="formVault" style="display:none">
+          <div class="vault-card">
+            <div class="vault-title">Yield Vault</div>
+            <div class="vault-desc">Deposit USDG. The vault writes covered calls and adds the premiums to the share price.</div>
+            <div class="vault-stats">
+              <div class="vault-stat"><b class="apy" id="vaultApy">—</b><span>Share price gain</span></div>
+              <div class="vault-stat"><b id="vaultTvl">—</b><span>TVL</span></div>
+              <div class="vault-stat"><b id="vaultPps">—</b><span>Price/Share</span></div>
+            </div>
+          </div>
+          <div class="order-form">
+            <div class="order-form-head">
+              <div class="order-side buy active" id="vaultDepositTab" onclick="setVaultSide('deposit')">DEPOSIT</div>
+              <div class="order-side sell" id="vaultWithdrawTab" onclick="setVaultSide('withdraw')">WITHDRAW</div>
+            </div>
+            <!-- DEPOSIT BODY -->
+            <div class="order-body" id="vaultDepositBody">
+              <div>
+                <div class="field-label">Amount (USDG)</div>
+                <div class="field"><input type="number" id="vaultDepositInput" value="1000" step="100" min="0"><div class="unit" id="vaultDepositHint">USDG</div></div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Shares you receive</span>
+                <span class="val" style="color:var(--green)" id="vaultDepositPreview">—</span>
+              </div>
+              <button class="btn-trade" id="vaultDepBtn" type="button" onclick="executeTrade()">Deposit to Vault</button>
+            </div>
+            <!-- WITHDRAW BODY -->
+            <div class="order-body" id="vaultWithdrawBody" style="display:none">
+              <div>
+                <div class="field-label">Shares to Redeem (xUSDG)</div>
+                <div class="field"><input type="number" id="vaultWithdrawInput" value="" placeholder="Enter shares" step="0.0001" min="0"><div class="unit" id="vaultWithdrawHint">Your balance: — xUSDG <button type="button" class="max-btn" onclick="fillMaxShares()">MAX</button></div></div>
+              </div>
+              <div class="premium-row">
+                <span class="label">USDG you receive</span>
+                <span class="val" style="color:var(--green)" id="vaultWithdrawPreview">—</span>
+              </div>
+              <button class="btn-trade sell-mode" id="vaultWdBtn" type="button" onclick="executeWithdraw()">Withdraw from Vault</button>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-row"><span class="k">Strategy</span><span class="v accent">Covered call writing</span></div>
+            <div class="info-row"><span class="k">Collateral</span><span class="v">USDG</span></div>
+            <div class="info-row"><span class="k">Yield</span><span class="v">Accrues to share price</span></div>
+            <div class="info-row"><span class="k">Withdrawal</span><span class="v">Redeem shares anytime</span></div>
+          </div>
+        </div>
+
+      </div><!-- /trade-panel -->
+
+      <!-- POSITIONS PANEL -->
+      <aside class="positions-panel" id="positionsPanel">
+        <div class="positions-head">
+          <h3>Positions</h3>
+          <span class="pos-count" id="posCount">0</span>
+        </div>
+        <div class="positions-tabs">
+          <button class="pos-tab active" data-pt="open">Open</button>
+          <button class="pos-tab" data-pt="orders">Listed</button>
+          <button class="pos-tab" data-pt="history">History</button>
+        </div>
+        <div class="positions-list" id="positionsList">
+          <div class="empty-state">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="8" width="24" height="18" rx="3"/><path d="M10 8V6a2 2 0 014 0v2M18 8V6a2 2 0 014 0v2"/></svg>
+            <p>Connect wallet to see positions</p>
+          </div>
+        </div>
+      </aside>
+    </div><!-- /content-area -->
+  </div><!-- /main -->
+</div><!-- /app-body -->
+
+<!-- MOBILE POSITIONS (shown only on mobile) -->
+<div class="pos-toggle" id="posToggle" onclick="toggleMobilePositions()">
+  <span>Positions <span id="posToggleCount" style="color:var(--accent-hi)">0</span></span>
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
+</div>
+<div class="mobile-positions" id="mobilePositions">
+  <div class="positions-tabs mobile-pos-tabs">
+    <button class="pos-tab active" data-pt="open">Open</button>
+    <button class="pos-tab" data-pt="orders">Listed</button>
+    <button class="pos-tab" data-pt="history">History</button>
   </div>
-</main>
+  <div class="positions-list" id="mobilePositionsList">
+    <div class="empty-state"><p>Connect wallet to see positions</p></div>
+  </div>
+</div>
 
-<footer>
-  <span>© <span id="yr"></span> xStockFi</span>
-  <nav class="foot-links" aria-label="Footer">
-    <a href="index.html">Home</a>
-    <a href="docs.html">Docs</a>
-    <a href="terms.html">Terms</a>
-    <a href="privacy.html">Privacy</a>
-  </nav>
-</footer>
+<!-- CONNECT WALLET MODAL -->
+<div class="connect-overlay" id="connectOverlay" style="display:none" onclick="hideConnect(event)">
+  <div class="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connectTitle">
+    <button class="modal-close" type="button" onclick="hideConnect(null)" aria-label="Close">✕</button>
+    <h2 id="connectTitle">Connect Wallet</h2>
+    <p>Choose a wallet to connect to xStockFi on Robinhood Chain (ID 4663).</p>
+    <div class="wallet-list" id="walletList"></div>
+    <p class="modal-note">By connecting you agree to the <a href="terms.html" style="color:var(--accent-hi)">Terms of Service</a> and <a href="privacy.html" style="color:var(--accent-hi)">Privacy Policy</a>.</p>
+  </div>
+</div>
+
+<!-- ethers.js v6 -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 
 <script>
-document.getElementById('yr').textContent = new Date().getFullYear();
-document.getElementById('waitlist-form').addEventListener('submit', function(e){
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  if(!email) return;
-  // TODO: wire to your email service (e.g. Mailchimp, Resend, ConvertKit)
+// ===== ABIs (matching deployed contracts) =====
+const ORACLE_ABI = [
+  "function getPriceUnsafe(string ticker) view returns (uint256 price, uint256 updatedAt)",
+  "function isFeedActive(string ticker) view returns (bool)"
+];
+const VAULT_ABI = [
+  "function totalAssets() view returns (uint256)",
+  "function pricePerShare() view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function previewDeposit(uint256 amount) view returns (uint256 shares)",
+  "function previewWithdraw(uint256 shares) view returns (uint256 usdgOut)",
+  "function deposit(uint256 amount) external returns (uint256 shares)",
+  "function withdraw(uint256 shares) external returns (uint256 usdgOut)"
+];
+const OPTION_ABI = [
+  "function write(string ticker, uint256 strike, uint256 collateral, uint256 premium, uint256 expiry) external returns (uint256 id)",
+  "function buy(uint256 id) external",
+  "function exercise(uint256 id) external",
+  "function expire(uint256 id) external",
+  "function cancel(uint256 id) external",
+  "function options(uint256 id) view returns (address writer, address buyer, string ticker, uint256 strike, uint256 collateral, uint256 premium, uint256 expiry, uint8 status)",
+  "function nextId() view returns (uint256)",
+  "function MIN_COLLATERAL() view returns (uint256)",
+  "function FEE_BPS() view returns (uint256)"
+];
+const BINARY_ABI = [
+  "function placeBet(string ticker, uint256 strike, uint256 betSize, uint8 direction, uint256 expiry) external returns (uint256 id)",
+  "function settle(uint256 id) external",
+  "function binaries(uint256 id) view returns (address bettor, string ticker, uint256 strike, uint256 betSize, uint256 expiry, uint8 direction, uint8 status)",
+  "function nextId() view returns (uint256)",
+  "function reservePool() view returns (uint256)",
+  "function PAYOUT_BPS() view returns (uint256)",
+  "function MIN_BET() view returns (uint256)",
+  "function FEE_BPS() view returns (uint256)"
+];
+const ERC20_ABI = [
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function balanceOf(address account) view returns (uint256)"
+];
+
+// ===== CONFIG / CONSTANTS =====
+const CFG = window.XSTOCKFI;
+const CHAIN_HEX = '0x' + CFG.chainId.toString(16);   // 4663 -> 0x1237
+const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
+const SCAN_LIMIT = 200;   // how many recent option / bet IDs to scan for the wallet's positions
+const SCAN_BATCH = 20;    // parallel RPC reads per batch
+
+// ===== MARKET DEFINITIONS =====
+// Fallback set used until isFeedActive() answers for every ticker.
+let FEED_TICKERS = new Set(['NVDA','AAPL','TSLA','MSFT','GOOGL','AMZN','META','SPY','QQQ']);
+
+const MARKETS = [
+  {t:'NVDA', n:'NVIDIA',        cat:'tech'},
+  {t:'AAPL', n:'Apple',         cat:'tech'},
+  {t:'TSLA', n:'Tesla',         cat:'tech'},
+  {t:'AMZN', n:'Amazon',        cat:'tech'},
+  {t:'MSFT', n:'Microsoft',     cat:'tech'},
+  {t:'GOOGL',n:'Alphabet',      cat:'tech'},
+  {t:'META', n:'Meta',          cat:'tech'},
+  {t:'AMD',  n:'AMD',           cat:'tech'},
+  {t:'INTC', n:'Intel',         cat:'tech'},
+  {t:'SHOP', n:'Shopify',       cat:'tech'},
+  {t:'SNOW', n:'Snowflake',     cat:'tech'},
+  {t:'RBLX', n:'Roblox',        cat:'tech'},
+  {t:'NFLX', n:'Netflix',       cat:'tech'},
+  {t:'SQ',   n:'Block',         cat:'other'},
+  {t:'COIN', n:'Coinbase',      cat:'other'},
+  {t:'HOOD', n:'Robinhood',     cat:'other'},
+  {t:'MSTR', n:'MicroStrategy', cat:'other'},
+  {t:'PLTR', n:'Palantir',      cat:'other'},
+  {t:'GME',  n:'GameStop',      cat:'other'},
+  {t:'PYPL', n:'PayPal',        cat:'other'},
+  {t:'UBER', n:'Uber',          cat:'other'},
+  {t:'LYFT', n:'Lyft',          cat:'other'},
+  {t:'BABA', n:'Alibaba',       cat:'other'},
+  {t:'NIO',  n:'NIO',           cat:'other'},
+  {t:'QQQ',  n:'QQQ ETF',       cat:'etf'},
+  {t:'SPY',  n:'S&P 500 ETF',   cat:'etf'},
+].map(m => ({...m, p:null, chg:null, updatedAt:null}));
+
+// ===== STATE =====
+let selectedMkt = MARKETS[0];
+let activeCat = 'all';
+let activeProd = 'write';
+let activeSide = 'write';          // 'write' | 'buy'
+let activeVaultSide = 'deposit';   // 'deposit' | 'withdraw'
+let activePosTab = 'open';
+let binaryDir = null;
+
+let provider, oracleContract, vaultContract, coveredCallContract, cashPutContract, binaryContract, usdgRead;
+let connected = false, walletAddress = null, signer = null, ethProvider = null, onRightChain = false;
+let allPositions = [];
+
+const CHAIN_CONSTANTS = { payoutBps:null, feeBps:null, minBet:null, minCollateral:null };
+
+// ===== HELPERS =====
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fromWei = v => Number(ethers.formatUnits(v, 18));
+const toWei = n => ethers.parseUnits(Number(n).toFixed(6), 18);   // 6 dp avoids float dust in 18-dp amounts
+const fmtUsd = v => v >= 1e6 ? `$${(v/1e6).toFixed(2)}M` : v >= 1e3 ? `$${(v/1e3).toFixed(1)}K` : `$${v.toFixed(2)}`;
+const fmtPrice = p => p != null ? '$' + p.toFixed(2) : '—';
+const nowSec = () => Math.floor(Date.now()/1000);
+function fmtAge(s){
+  if(s < 60) return `${s}s`;
+  if(s < 3600) return `${Math.floor(s/60)}m`;
+  if(s < 86400) return `${Math.floor(s/3600)}h`;
+  return `${Math.floor(s/86400)}d`;
+}
+function fmtChg(c){
+  if(c == null) return {txt:'—', cls:''};
+  return {txt:`${c >= 0 ? '+' : ''}${c.toFixed(2)}%`, cls: c >= 0 ? 'up' : 'dn'};
+}
+function fmtExpiry(ts){
+  const diff = ts - nowSec();
+  if(diff <= 0) return 'Expired';
+  return 'in ' + fmtAge(diff);
+}
+function errMsg(err){
+  if(err?.code === 4001 || err?.code === 'ACTION_REJECTED') return 'Transaction rejected.';
+  return 'Error: ' + (err?.reason || err?.shortMessage || err?.info?.error?.message || err?.message || 'unknown');
+}
+function showToast(msg){
+  document.querySelectorAll('.toast').forEach(t => t.remove());
   const t = document.createElement('div');
   t.className = 'toast';
-  t.textContent = "You're on the list!";
+  t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 2200);
-  document.getElementById('email').value = '';
+  setTimeout(() => t.remove(), 3200);
+}
+async function withBusy(btn, fn){
+  if(btn){ btn.disabled = true; btn.dataset.busy = '1'; }
+  try { await fn(); } finally { if(btn){ btn.disabled = false; delete btn.dataset.busy; } updateTradeButtons(); }
+}
+
+// ===== PRICE HISTORY (real oracle samples, kept in this browser for 24h) =====
+const HISTORY_KEY = 'xstockfi.priceHistory.v1';
+let priceHistory = {};
+try { priceHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}') || {}; } catch(e){ priceHistory = {}; }
+const sessionOpen = {};   // first price seen this session, for the % change
+function recordPrice(ticker, p, updatedAt){
+  const arr = priceHistory[ticker] || (priceHistory[ticker] = []);
+  const last = arr[arr.length - 1];
+  if(!last || last.u !== updatedAt) arr.push({u:updatedAt, p});
+  const cutoff = nowSec() - 86400;
+  while(arr.length && arr[0].u < cutoff) arr.shift();
+  if(arr.length > 400) arr.splice(0, arr.length - 400);
+}
+function saveHistory(){ try { localStorage.setItem(HISTORY_KEY, JSON.stringify(priceHistory)); } catch(e){} }
+
+// ===== INIT RPC =====
+async function initContracts(){
+  try {
+    provider = new ethers.JsonRpcProvider(CFG.rpc, CFG.chainId, {staticNetwork:true});
+    const c = CFG.contracts;
+    oracleContract      = new ethers.Contract(c.oracleReader,   ORACLE_ABI, provider);
+    vaultContract       = new ethers.Contract(c.yieldVault,     VAULT_ABI,  provider);
+    coveredCallContract = new ethers.Contract(c.coveredCall,    OPTION_ABI, provider);
+    cashPutContract     = new ethers.Contract(c.cashSecuredPut, OPTION_ABI, provider);
+    binaryContract      = new ethers.Contract(c.binaryOption,   BINARY_ABI, provider);
+    usdgRead            = new ethers.Contract(c.usdg,           ERC20_ABI,  provider);
+
+    await Promise.allSettled([loadConstants(), discoverFeedTickers()]);
+    await Promise.allSettled([fetchAllPrices(), fetchVaultStats(), fetchReservePool(), fetchContractCounts()]);
+  } catch(e){
+    console.warn('RPC init failed:', e.message);
+    $('oracleTs').textContent = 'Could not reach Robinhood Chain RPC';
+  }
+}
+
+async function loadConstants(){
+  const [payoutBps, feeBps, minBet, minCollat] = await Promise.allSettled([
+    binaryContract.PAYOUT_BPS(), binaryContract.FEE_BPS(), binaryContract.MIN_BET(), coveredCallContract.MIN_COLLATERAL()
+  ]);
+  if(payoutBps.status === 'fulfilled') CHAIN_CONSTANTS.payoutBps = Number(payoutBps.value);
+  if(feeBps.status === 'fulfilled')    CHAIN_CONSTANTS.feeBps = Number(feeBps.value);
+  if(minBet.status === 'fulfilled')    CHAIN_CONSTANTS.minBet = fromWei(minBet.value);
+  if(minCollat.status === 'fulfilled') CHAIN_CONSTANTS.minCollateral = fromWei(minCollat.value);
+
+  if(CHAIN_CONSTANTS.payoutBps != null){
+    const mult = (CHAIN_CONSTANTS.payoutBps / 10000).toFixed(2);
+    document.querySelectorAll('.binary-payout').forEach(el => el.textContent = `${mult}× payout`);
+  }
+  if(CHAIN_CONSTANTS.feeBps != null) $('infoFee').textContent = (CHAIN_CONSTANTS.feeBps / 100).toFixed(2) + '%';
+  if(CHAIN_CONSTANTS.minCollateral != null) $('collateralHint').textContent = `USDG · min ${CHAIN_CONSTANTS.minCollateral}`;
+  if(CHAIN_CONSTANTS.minBet != null) $('binSizeHint').textContent = `Min bet ${CHAIN_CONSTANTS.minBet} USDG · max loss = bet size`;
+  updateEstimates();
+}
+
+async function discoverFeedTickers(){
+  const results = await Promise.allSettled(MARKETS.map(m => oracleContract.isFeedActive(m.t)));
+  const answered = results.filter(r => r.status === 'fulfilled').length;
+  if(answered === 0) return;   // RPC down: keep fallback set
+  FEED_TICKERS = new Set(MARKETS.filter((m, i) => results[i].status === 'fulfilled' && results[i].value).map(m => m.t));
+  renderList();
+  updateHeader();
+}
+
+async function fetchAllPrices(){
+  const tickers = MARKETS.filter(m => FEED_TICKERS.has(m.t));
+  await Promise.allSettled(tickers.map(async m => {
+    const [price, updatedAt] = await oracleContract.getPriceUnsafe(m.t);
+    const p = fromWei(price);
+    if(!(p > 0)) return;
+    if(sessionOpen[m.t] == null) sessionOpen[m.t] = p;
+    m.p = p;
+    m.chg = ((p - sessionOpen[m.t]) / sessionOpen[m.t]) * 100;
+    m.updatedAt = Number(updatedAt);
+    recordPrice(m.t, p, m.updatedAt);
+  }));
+  saveHistory();
+  renderList();
+  updateHeader();
+  renderChart();
+}
+
+async function fetchVaultStats(){
+  try {
+    const [assets, pps] = await Promise.all([vaultContract.totalAssets(), vaultContract.pricePerShare()]);
+    const tvl = fromWei(assets), ppsVal = fromWei(pps);
+    $('stat-tvl').textContent = fmtUsd(tvl);
+    $('vaultTvl').textContent = fmtUsd(tvl);
+    $('vaultPps').textContent = ppsVal > 0 ? `$${ppsVal.toFixed(4)}` : '—';
+    // Shares start at 1.0 USDG, so growth above 1.0 is yield earned since launch.
+    $('vaultApy').textContent = ppsVal > 0 ? `${ppsVal >= 1 ? '+' : ''}${((ppsVal - 1) * 100).toFixed(2)}%` : '—';
+  } catch(e){}
+}
+
+async function fetchReservePool(){
+  try { $('stat-pool').textContent = fmtUsd(fromWei(await binaryContract.reservePool())); } catch(e){}
+}
+
+async function fetchContractCounts(){
+  try {
+    const [calls, puts, bins] = await Promise.all([coveredCallContract.nextId(), cashPutContract.nextId(), binaryContract.nextId()]);
+    $('stat-pos').textContent = Number(calls) + Number(puts);
+    $('stat-bin').textContent = Number(bins);
+  } catch(e){}
+}
+
+// ===== MARKET LIST =====
+function renderList(){
+  const q = $('mktSearch').value.toLowerCase();
+  const items = MARKETS.filter(m => {
+    if(activeCat !== 'all' && m.cat !== activeCat) return false;
+    if(q && !m.t.toLowerCase().includes(q) && !m.n.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  $('marketList').innerHTML = items.length ? items.map(m => {
+    const {txt, cls} = fmtChg(m.chg);
+    const noFeed = !FEED_TICKERS.has(m.t);
+    return `
+    <div class="mkt-row${m.t===selectedMkt.t?' active':''}${noFeed?' no-feed':''}" onclick="selectMkt('${m.t}')" title="${noFeed ? 'No oracle feed yet' : ''}">
+      <div class="mkt-left">
+        <span class="ticker">${m.t}</span>
+        <div><div class="mkt-name">${m.n}</div></div>
+      </div>
+      <div class="mkt-right">
+        <div class="mkt-price">${noFeed ? 'Soon' : fmtPrice(m.p)}</div>
+        <div class="mkt-chg ${cls}">${noFeed ? '&nbsp;' : txt}</div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="list-empty">No markets match</div>';
+  renderMobileMarketBar();
+}
+
+function renderMobileMarketBar(){
+  const bar = $('mobileMarketBar');
+  if(!bar) return;
+  const list = [...MARKETS].sort((a,b) => FEED_TICKERS.has(b.t) - FEED_TICKERS.has(a.t));
+  bar.innerHTML = list.map(m => {
+    const price = !FEED_TICKERS.has(m.t) ? 'soon' : m.p != null ? '$' + m.p.toFixed(0) : '—';
+    return `<div class="mob-mkt${m.t === selectedMkt.t ? ' active' : ''}${!FEED_TICKERS.has(m.t) ? ' no-feed' : ''}" onclick="selectMkt('${m.t}')">
+      <span>${m.t}</span><span class="mp">${price}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectMkt(ticker){
+  selectedMkt = MARKETS.find(m => m.t === ticker) || MARKETS[0];
+  renderList();
+  updateHeader(true);
+  renderChart();
+  updateTradeButtons();
+}
+
+function updateHeader(resetStrikes){
+  const m = selectedMkt;
+  $('mktTitle').textContent = m.t;
+  $('mktFullName').textContent = m.n;
+  $('mktPriceBig').textContent = fmtPrice(m.p);
+  const {txt, cls} = fmtChg(m.chg);
+  $('mktChg').textContent = txt;
+  $('mktChg').className = 'chg ' + cls;
+  $('infoCurrent').textContent = fmtPrice(m.p);
+
+  // Suggest strikes when the market changes, or the first time a price arrives
+  if(m.p != null && (resetStrikes || m._strikeSet !== true)){
+    const step = m.p >= 100 ? 5 : 1;
+    const strikeOffset = activeProd === 'put' ? 0.95 : 1.05;
+    const strike = Math.round(m.p * strikeOffset / step) * step;
+    $('strikeInput').value = strike;
+    $('binStrike').value = Math.round(m.p / step) * step;
+    m._strikeSet = true;
+  }
+  $('infoStrike').textContent = fmtPrice(parseFloat($('strikeInput').value) || null);
+  updateOracleAge();
+  updateEstimates();
+}
+
+function updateOracleAge(){
+  const m = selectedMkt, el = $('oracleTs'), dot = $('oracleDot');
+  if(!FEED_TICKERS.has(m.t)){ el.textContent = 'No oracle feed yet — trading opens when one is added'; dot.className = 'oracle-dot off'; return; }
+  if(!m.updatedAt){ el.textContent = 'Loading oracle…'; dot.className = 'oracle-dot'; return; }
+  const age = Math.max(0, nowSec() - m.updatedAt);
+  const stale = age > 3600;
+  el.textContent = stale ? `Oracle last updated ${fmtAge(age)} ago · market likely closed` : `Oracle updated ${fmtAge(age)} ago`;
+  dot.className = 'oracle-dot' + (stale ? ' stale' : '');
+}
+
+// ===== CHART =====
+function renderChart(){
+  const svg = $('chartSvg'), empty = $('chartEmpty'), cap = $('chartCap');
+  const pts = (priceHistory[selectedMkt.t] || []);
+  if(!FEED_TICKERS.has(selectedMkt.t)){
+    svg.innerHTML = ''; empty.hidden = false; cap.textContent = '';
+    empty.querySelector('.chart-label').textContent = 'No oracle feed for this market yet';
+    return;
+  }
+  if(pts.length < 2){
+    svg.innerHTML = ''; empty.hidden = false; cap.textContent = '';
+    empty.querySelector('.chart-label').textContent = pts.length ? 'Waiting for the next oracle update…' : 'Collecting oracle prices…';
+    return;
+  }
+  empty.hidden = true;
+  const W = 600, H = 160, pad = 12;
+  const ps = pts.map(x => x.p), us = pts.map(x => x.u);
+  let lo = Math.min(...ps), hi = Math.max(...ps);
+  if(hi - lo < hi * 0.0005){ const mid = (hi + lo) / 2; lo = mid * 0.9995; hi = mid * 1.0005; }
+  const u0 = us[0], u1 = us[us.length - 1] || u0 + 1;
+  const x = u => pad + (W - pad*2) * ((u - u0) / Math.max(1, u1 - u0));
+  const y = p => H - pad - (H - pad*2) * ((p - lo) / (hi - lo));
+  const line = pts.map(pt => `${x(pt.u).toFixed(1)},${y(pt.p).toFixed(1)}`).join(' ');
+  const up = ps[ps.length - 1] >= ps[0];
+  const col = up ? 'var(--green)' : 'var(--red)';
+  svg.innerHTML = `
+    <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${up ? '#22c55e' : '#ef4444'}" stop-opacity=".28"/>
+      <stop offset="1" stop-color="${up ? '#22c55e' : '#ef4444'}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="${x(u0).toFixed(1)},${H} ${line} ${x(u1).toFixed(1)},${H}" fill="url(#cg)"/>
+    <polyline points="${line}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>`;
+  cap.innerHTML = `<span>${fmtPrice(hi)}</span><span>${pts.length} oracle updates · last ${fmtAge(Math.max(0, nowSec() - u0))}</span><span>${fmtPrice(lo)}</span>`;
+}
+
+// ===== FORM ESTIMATES (all computed from your inputs and on-chain values) =====
+function updateEstimates(){
+  // Premium yield for writers
+  const coll = parseFloat($('collateralInput').value) || 0;
+  const prem = parseFloat($('premiumInput').value) || 0;
+  const secs = Number(document.querySelector('#expiryGrid .expiry-btn.active')?.dataset.secs || 86400);
+  if(coll > 0 && prem > 0){
+    const pct = prem / coll * 100;
+    const annual = pct * (365 * 86400 / secs);
+    $('premiumVal').textContent = `${pct.toFixed(2)}% · ${annual.toFixed(0)}% annualised`;
+  } else $('premiumVal').textContent = '—';
+  $('infoProduct').textContent = activeProd === 'put' ? 'Cash-Secured Put' : 'Covered Call';
+  $('infoStrike').textContent = fmtPrice(parseFloat($('strikeInput').value) || null);
+
+  // Binary payout
+  const size = parseFloat($('binSize').value) || 0;
+  $('binPayout').textContent = size > 0 && CHAIN_CONSTANTS.payoutBps != null
+    ? (size * CHAIN_CONSTANTS.payoutBps / 10000).toFixed(2) + ' USDG' : '—';
+
+  previewVaultDeposit();
+}
+
+let depositPreviewSeq = 0;
+async function previewVaultDeposit(){
+  const amt = parseFloat($('vaultDepositInput').value) || 0;
+  const el = $('vaultDepositPreview');
+  if(!(amt > 0) || !vaultContract){ el.textContent = '—'; return; }
+  const seq = ++depositPreviewSeq;
+  try {
+    const shares = await vaultContract.previewDeposit(toWei(amt));
+    if(seq === depositPreviewSeq) el.textContent = fromWei(shares).toFixed(4) + ' xUSDG';
+  } catch(e){ if(seq === depositPreviewSeq) el.textContent = '—'; }
+}
+
+function updateForm(){
+  $('formWrite').style.display  = (activeProd === 'write' || activeProd === 'put') ? '' : 'none';
+  $('formBinary').style.display = activeProd === 'binary' ? '' : 'none';
+  $('formVault').style.display  = activeProd === 'vault' ? '' : 'none';
+  $('buyIdHint').textContent = `ID of a listed ${activeProd === 'put' ? 'put' : 'call'}`;
+  $('infoMaxLoss').textContent = activeProd === 'put' ? 'Collateral (if assigned)' : 'Collateral only';
+  updateEstimates();
+  updateTradeButtons();
+  if(activeSide === 'buy') loadBuyOption();
+}
+
+// Single place that decides every trade button's label and state
+function updateTradeButtons(){
+  const m = selectedMkt;
+  const hasFeed = FEED_TICKERS.has(m.t);
+  const suffix = !connected ? ' → Connect Wallet' : !onRightChain ? ' → Switch Network' : '';
+  const set = (id, label, needsFeed) => {
+    const b = $(id);
+    if(!b || b.dataset.busy) return;
+    if(needsFeed && !hasFeed){ b.textContent = `No oracle feed for ${m.t}`; b.disabled = true; return; }
+    b.disabled = false;
+    b.textContent = label + suffix;
+  };
+  set('writeBtn', activeProd === 'put' ? 'Write Put' : 'Write Call', true);
+  set('buyBtn', activeProd === 'put' ? 'Buy Put' : 'Buy Call', false);
+  set('binBtn', 'Place Binary Bet', true);
+  set('vaultDepBtn', 'Deposit to Vault', false);
+  set('vaultWdBtn', 'Withdraw from Vault', false);
+}
+
+function selectBinary(dir){
+  binaryDir = dir;
+  $('binUp').className = 'binary-card up-card' + (dir === 'up' ? ' selected-up' : '');
+  $('binDn').className = 'binary-card dn-card' + (dir === 'dn' ? ' selected-dn' : '');
+  updateEstimates();
+}
+
+// ===== WALLET: discovery (EIP-6963) with legacy fallback =====
+const discoveredWallets = new Map();
+let walletChoices = [];
+window.addEventListener('eip6963:announceProvider', e => {
+  const d = e.detail;
+  if(d?.info?.uuid && d.provider) { discoveredWallets.set(d.info.uuid, d); renderWalletList(); }
 });
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+const LEGACY_WALLETS = [
+  {name:'MetaMask',        icon:'🦊', bg:'#f6851b22', get: () => window.ethereum?.isMetaMask ? window.ethereum : null, install:'https://metamask.io/download/'},
+  {name:'OKX Wallet',      icon:'OK', bg:'#ffffff14', get: () => window.okxwallet || (window.ethereum?.isOkxWallet ? window.ethereum : null), install:'https://www.okx.com/web3'},
+  {name:'Coinbase Wallet', icon:'🔵', bg:'#0052ff22', get: () => window.coinbaseWalletExtension || (window.ethereum?.isCoinbaseWallet ? window.ethereum : null), install:'https://www.coinbase.com/wallet/downloads'},
+  {name:'Rabby',           icon:'🐰', bg:'#8b5cf622', get: () => window.ethereum?.isRabby ? window.ethereum : null, install:'https://rabby.io/'},
+];
+
+function renderWalletList(){
+  const list = $('walletList');
+  if(!list) return;
+  walletChoices = [];
+  if(discoveredWallets.size){
+    for(const d of discoveredWallets.values()) walletChoices.push({name:d.info.name, iconUrl:d.info.icon, provider:d.provider, sub:'Detected in this browser'});
+  } else {
+    for(const w of LEGACY_WALLETS){
+      const p = w.get();
+      walletChoices.push({name:w.name, icon:w.icon, bg:w.bg, provider:p, install:w.install, sub: p ? 'Detected in this browser' : 'Not installed · click to get it'});
+    }
+    if(window.ethereum && !walletChoices.some(w => w.provider === window.ethereum)){
+      walletChoices.push({name:'Browser wallet', icon:'◎', bg:'#ffffff14', provider:window.ethereum, sub:'Detected in this browser'});
+    }
+  }
+  list.innerHTML = walletChoices.map((w, i) => {
+    const icon = w.iconUrl && /^data:image\//.test(w.iconUrl)
+      ? `<img src="${esc(w.iconUrl)}" alt="">`
+      : esc(w.icon || '◎');
+    return `<button type="button" class="wallet-opt${w.provider ? '' : ' missing'}" onclick="connectWallet(${i})">
+      <div class="wallet-icon" style="background:${w.bg || '#ffffff10'}">${icon}</div>
+      <div class="wallet-info"><div class="wallet-name">${esc(w.name)}</div><div class="wallet-sub">${esc(w.sub)}</div></div>
+    </button>`;
+  }).join('') + (!window.ethereum && !discoveredWallets.size
+    ? '<p class="modal-note" style="margin-bottom:0">On mobile, open this page inside your wallet app\'s browser.</p>' : '');
+}
+
+function showConnect(){ renderWalletList(); $('connectOverlay').style.display = 'flex'; }
+function hideConnect(e){
+  if(!e || e.target === $('connectOverlay')) $('connectOverlay').style.display = 'none';
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') hideConnect(null); });
+
+async function connectWallet(i){
+  const w = walletChoices[i];
+  if(!w) return;
+  if(!w.provider){ if(w.install) window.open(w.install, '_blank', 'noopener'); return; }
+  try {
+    const accounts = await w.provider.request({method:'eth_requestAccounts'});
+    if(!accounts?.length) return;
+    if(ethProvider && ethProvider !== w.provider) detachWalletListeners();
+    ethProvider = w.provider;
+    walletAddress = ethers.getAddress(accounts[0]);
+    connected = true;
+    attachWalletListeners();
+    hideConnect(null);
+    await switchToRobinhood(true);
+    await refreshWalletState();
+    showToast('Wallet connected');
+    try { localStorage.setItem('xstockfi.wallet', w.name); } catch(e){}
+  } catch(err){
+    showToast(err?.code === 4001 ? 'Connection rejected.' : 'Connection failed: ' + (err?.message || err));
+    console.error('Wallet connect error:', err);
+  }
+}
+
+async function switchToRobinhood(quiet){
+  if(!ethProvider) return false;
+  try {
+    await ethProvider.request({method:'wallet_switchEthereumChain', params:[{chainId:CHAIN_HEX}]});
+  } catch(err){
+    const code = err?.code ?? err?.data?.originalError?.code;
+    if(code === 4902 || code === -32603){
+      try {
+        await ethProvider.request({method:'wallet_addEthereumChain', params:[{
+          chainId: CHAIN_HEX,
+          chainName: 'Robinhood Chain',
+          nativeCurrency: {name:'ETH', symbol:'ETH', decimals:18},
+          rpcUrls: [CFG.rpc],
+          blockExplorerUrls: [CFG.explorer]
+        }]});
+      } catch(addErr){ if(!quiet) showToast('Add Robinhood Chain in your wallet (Chain ID 4663).'); }
+    } else if(!quiet && code === 4001){ showToast('Network switch rejected.'); }
+  }
+  await refreshWalletState();
+  return onRightChain;
+}
+
+async function refreshWalletState(){
+  if(!connected || !ethProvider) return;
+  try {
+    const chainHex = await ethProvider.request({method:'eth_chainId'});
+    onRightChain = parseInt(chainHex, 16) === CFG.chainId;
+    signer = await new ethers.BrowserProvider(ethProvider).getSigner(walletAddress);
+  } catch(e){ onRightChain = false; }
+  renderWalletPill();
+  updateTradeButtons();
+  refreshBalance();
+  fetchPositions();
+}
+
+async function refreshBalance(){
+  if(!connected || !usdgRead) return;
+  try { $('walletBal').textContent = fromWei(await usdgRead.balanceOf(walletAddress)).toLocaleString(undefined, {maximumFractionDigits:2}) + ' USDG'; }
+  catch(e){ $('walletBal').textContent = '— USDG'; }
+}
+
+function renderWalletPill(){
+  $('connectBtn').hidden = connected;
+  $('walletPill').hidden = !connected;
+  $('netBanner').hidden = !connected || onRightChain;
+  if(connected){
+    $('walletAddr').textContent = walletAddress.slice(0,6) + '…' + walletAddress.slice(-4);
+    $('walletDot').className = 'wallet-dot' + (onRightChain ? '' : ' warn');
+  }
+}
+
+function onAccountsChanged(accounts){
+  if(!accounts?.length){ disconnectWallet(); return; }
+  walletAddress = ethers.getAddress(accounts[0]);
+  refreshWalletState();
+}
+function onChainChanged(){ refreshWalletState(); }
+function attachWalletListeners(){
+  ethProvider?.on?.('accountsChanged', onAccountsChanged);
+  ethProvider?.on?.('chainChanged', onChainChanged);
+}
+function detachWalletListeners(){
+  ethProvider?.removeListener?.('accountsChanged', onAccountsChanged);
+  ethProvider?.removeListener?.('chainChanged', onChainChanged);
+}
+
+function disconnectWallet(){
+  detachWalletListeners();
+  connected = false; walletAddress = null; signer = null; ethProvider = null; onRightChain = false;
+  allPositions = [];
+  try { localStorage.removeItem('xstockfi.wallet'); } catch(e){}
+  renderWalletPill();
+  updateTradeButtons();
+  renderPositions();
+}
+
+// Reconnect silently on reload if the wallet already authorised this site
+async function tryAutoConnect(){
+  let last; try { last = localStorage.getItem('xstockfi.wallet'); } catch(e){}
+  if(!last) return;
+  await new Promise(r => setTimeout(r, 400));   // let EIP-6963 announcements arrive
+  renderWalletList();
+  const i = walletChoices.findIndex(w => w.name === last && w.provider);
+  if(i < 0) return;
+  try {
+    const accounts = await walletChoices[i].provider.request({method:'eth_accounts'});
+    if(accounts?.length) connectWallet(i);
+  } catch(e){}
+}
+
+// ===== TX PRE-FLIGHT =====
+async function ready(){
+  if(!connected){ showConnect(); return false; }
+  if(!onRightChain){
+    if(!(await switchToRobinhood(false))){ showToast('Switch your wallet to Robinhood Chain first.'); return false; }
+  }
+  return true;
+}
+async function ensureFunds(amount){
+  const bal = await usdgRead.balanceOf(walletAddress);
+  if(bal < amount){
+    showToast(`Not enough USDG: you have ${fromWei(bal).toFixed(2)}, need ${fromWei(amount).toFixed(2)}.`);
+    return false;
+  }
+  return true;
+}
+async function ensureApproval(spender, amount){
+  const usdg = new ethers.Contract(CFG.contracts.usdg, ERC20_ABI, signer);
+  const allowance = await usdg.allowance(walletAddress, spender);
+  if(allowance < amount){
+    showToast('Approve USDG in your wallet…');
+    const tx = await usdg.approve(spender, amount);   // exact amount, not unlimited
+    await tx.wait();
+  }
+}
+async function afterTx(){
+  await Promise.allSettled([fetchPositions(), refreshBalance(), fetchContractCounts(), fetchVaultStats(), fetchReservePool()]);
+}
+
+// ===== TRADES =====
+async function executeTrade(){
+  if(activeProd === 'vault' && activeVaultSide === 'withdraw') return executeWithdraw();
+  const btn = activeProd === 'binary' ? $('binBtn') : activeProd === 'vault' ? $('vaultDepBtn') : $('writeBtn');
+  if(!(await ready())) return;
+
+  await withBusy(btn, async () => {
+    try {
+      if(activeProd === 'write' || activeProd === 'put'){
+        const ticker = selectedMkt.t;
+        if(!FEED_TICKERS.has(ticker)){ showToast('No oracle feed for ' + ticker); return; }
+        const strikeRaw = parseFloat($('strikeInput').value) || 0;
+        const collRaw   = parseFloat($('collateralInput').value) || 0;
+        const premRaw   = parseFloat($('premiumInput').value) || 0;
+        if(strikeRaw <= 0){ showToast('Enter a strike price.'); return; }
+        if(premRaw <= 0){ showToast('Enter the premium you want for this option.'); return; }
+        if(CHAIN_CONSTANTS.minCollateral != null && collRaw < CHAIN_CONSTANTS.minCollateral){
+          showToast(`Min collateral is ${CHAIN_CONSTANTS.minCollateral} USDG.`); return;
+        }
+        const secs = Number(document.querySelector('#expiryGrid .expiry-btn.active')?.dataset.secs || 86400);
+        const strike = toWei(strikeRaw), collateral = toWei(collRaw), premium = toWei(premRaw);
+        const expiry = BigInt(nowSec() + secs);
+        const isCall = activeProd === 'write';
+        const addr = isCall ? CFG.contracts.coveredCall : CFG.contracts.cashSecuredPut;
+        const c = (isCall ? coveredCallContract : cashPutContract).connect(signer);
+        const label = isCall ? 'Covered call' : 'Cash-secured put';
+
+        if(!(await ensureFunds(collateral))) return;
+        await ensureApproval(addr, collateral);
+        showToast(`Confirm the ${label.toLowerCase()} in your wallet…`);
+        const tx = await c.write(ticker, strike, collateral, premium, expiry);
+        showToast('Pending…');
+        await tx.wait();
+        showToast(`✓ ${label} written and listed`);
+
+      } else if(activeProd === 'binary'){
+        if(!binaryDir){ showToast('Pick ABOVE or BELOW first.'); return; }
+        const ticker = selectedMkt.t;
+        if(!FEED_TICKERS.has(ticker)){ showToast('No oracle feed for ' + ticker); return; }
+        const strikeRaw = parseFloat($('binStrike').value) || 0;
+        const sizeRaw   = parseFloat($('binSize').value) || 0;
+        if(strikeRaw <= 0){ showToast('Enter a strike price.'); return; }
+        if(CHAIN_CONSTANTS.minBet != null && sizeRaw < CHAIN_CONSTANTS.minBet){ showToast(`Min bet is ${CHAIN_CONSTANTS.minBet} USDG.`); return; }
+        if(sizeRaw <= 0){ showToast('Enter a bet size.'); return; }
+        const secs = Number(document.querySelector('#formBinary .expiry-btn.active')?.dataset.secs || 3600);
+        const strike = toWei(strikeRaw), amount = toWei(sizeRaw);
+        const expiry = BigInt(nowSec() + secs);
+        const direction = binaryDir === 'up' ? 0 : 1;   // 0 = Above, 1 = Below
+
+        if(!(await ensureFunds(amount))) return;
+        await ensureApproval(CFG.contracts.binaryOption, amount);
+        showToast('Confirm the bet in your wallet…');
+        const tx = await binaryContract.connect(signer).placeBet(ticker, strike, amount, direction, expiry);
+        showToast('Pending…');
+        await tx.wait();
+        showToast('✓ Bet placed');
+
+      } else if(activeProd === 'vault'){
+        const amtRaw = parseFloat($('vaultDepositInput').value) || 0;
+        if(amtRaw <= 0){ showToast('Enter an amount.'); return; }
+        const amount = toWei(amtRaw);
+        if(!(await ensureFunds(amount))) return;
+        await ensureApproval(CFG.contracts.yieldVault, amount);
+        showToast('Confirm the deposit in your wallet…');
+        const tx = await vaultContract.connect(signer).deposit(amount);
+        showToast('Pending…');
+        await tx.wait();
+        showToast('✓ Deposited to vault');
+      }
+      await afterTx();
+    } catch(err){ showToast(errMsg(err)); console.error(err); }
+  });
+}
+
+// ===== BUY A LISTED OPTION =====
+let buyLoadSeq = 0, loadedBuyOption = null;
+async function loadBuyOption(){
+  const raw = $('buyOptionId').value;
+  const id = parseInt(raw);
+  const box = $('optDetail'), cost = $('buyPremiumDisplay');
+  loadedBuyOption = null;
+  if(raw === '' || isNaN(id) || id < 0 || !coveredCallContract){
+    box.innerHTML = '<div class="info-row"><span class="k">Enter an ID to load the option</span></div>'; cost.textContent = '—'; return;
+  }
+  const seq = ++buyLoadSeq;
+  box.innerHTML = '<div class="info-row"><span class="k">Loading…</span></div>';
+  try {
+    const c = activeProd === 'put' ? cashPutContract : coveredCallContract;
+    const o = await c.options(id);
+    if(seq !== buyLoadSeq) return;
+    if(o.writer === ZERO_ADDR){ box.innerHTML = `<div class="info-row"><span class="k">No ${activeProd === 'put' ? 'put' : 'call'} #${id} found</span></div>`; cost.textContent = '—'; return; }
+    const expiry = Number(o.expiry), taken = o.buyer !== ZERO_ADDR, expired = expiry <= nowSec();
+    const mine = walletAddress && o.writer.toLowerCase() === walletAddress.toLowerCase();
+    let state = 'Available', cls = 'pos';
+    if(Number(o.status) !== 0){ state = 'Closed'; cls = 'neg'; }
+    else if(taken){ state = 'Already bought'; cls = 'neg'; }
+    else if(expired){ state = 'Expired'; cls = 'neg'; }
+    else if(mine){ state = 'Your own listing'; cls = ''; }
+    loadedBuyOption = {id, premium:o.premium, buyable: state === 'Available'};
+    box.innerHTML = `
+      <div class="info-row"><span class="k">Market</span><span class="v">${esc(o.ticker)}</span></div>
+      <div class="info-row"><span class="k">Strike</span><span class="v">${fmtPrice(fromWei(o.strike))}</span></div>
+      <div class="info-row"><span class="k">Collateral</span><span class="v">${fromWei(o.collateral).toFixed(2)} USDG</span></div>
+      <div class="info-row"><span class="k">Expiry</span><span class="v">${fmtExpiry(expiry)}</span></div>
+      <div class="info-row"><span class="k">Status</span><span class="v ${cls}">${state}</span></div>`;
+    cost.textContent = fromWei(o.premium).toFixed(2) + ' USDG';
+  } catch(e){
+    if(seq === buyLoadSeq){ box.innerHTML = '<div class="info-row"><span class="k">Could not load that option</span></div>'; cost.textContent = '—'; }
+  }
+}
+
+async function executeBuy(){
+  if(!(await ready())) return;
+  await loadBuyOption();
+  const o = loadedBuyOption;
+  if(!o){ showToast('Enter a valid option ID.'); return; }
+  if(!o.buyable){ showToast('That option is not available to buy.'); return; }
+  const isPut = activeProd === 'put';
+  const addr = isPut ? CFG.contracts.cashSecuredPut : CFG.contracts.coveredCall;
+  const c = (isPut ? cashPutContract : coveredCallContract).connect(signer);
+  await withBusy($('buyBtn'), async () => {
+    try {
+      if(!(await ensureFunds(o.premium))) return;
+      await ensureApproval(addr, o.premium);
+      showToast(`Confirm buying #${o.id} in your wallet…`);
+      const tx = await c.buy(o.id);
+      showToast('Pending…');
+      await tx.wait();
+      showToast(`✓ Option #${o.id} bought`);
+      await afterTx();
+      loadBuyOption();
+    } catch(err){ showToast(errMsg(err)); console.error(err); }
+  });
+}
+
+// ===== VAULT WITHDRAW =====
+async function executeWithdraw(){
+  if(!(await ready())) return;
+  const sharesRaw = parseFloat($('vaultWithdrawInput').value) || 0;
+  if(sharesRaw <= 0){ showToast('Enter shares to withdraw.'); return; }
+  await withBusy($('vaultWdBtn'), async () => {
+    try {
+      const bal = await vaultContract.balanceOf(walletAddress);
+      let shares = toWei(sharesRaw);
+      if(shares > bal){
+        if(fromWei(shares - bal) < 0.0001) shares = bal;   // rounding from the MAX button
+        else { showToast(`You only have ${fromWei(bal).toFixed(4)} xUSDG.`); return; }
+      }
+      showToast('Confirm the withdrawal in your wallet…');
+      const tx = await vaultContract.connect(signer).withdraw(shares);
+      showToast('Pending…');
+      await tx.wait();
+      showToast('✓ Withdrawn from vault');
+      $('vaultWithdrawInput').value = '';
+      await afterTx();
+      setVaultSide('withdraw');
+    } catch(err){ showToast(errMsg(err)); console.error(err); }
+  });
+}
+
+async function fillMaxShares(){
+  if(!connected){ showConnect(); return; }
+  try {
+    const bal = await vaultContract.balanceOf(walletAddress);
+    $('vaultWithdrawInput').value = ethers.formatUnits(bal, 18);
+    previewWithdraw();
+  } catch(e){}
+}
+
+let withdrawPreviewSeq = 0;
+async function previewWithdraw(){
+  const sharesRaw = parseFloat($('vaultWithdrawInput').value) || 0;
+  const el = $('vaultWithdrawPreview');
+  if(sharesRaw <= 0 || !vaultContract){ el.textContent = '—'; return; }
+  const seq = ++withdrawPreviewSeq;
+  try {
+    const out = await vaultContract.previewWithdraw(toWei(sharesRaw));
+    if(seq === withdrawPreviewSeq) el.textContent = fromWei(out).toFixed(2) + ' USDG';
+  } catch(e){ if(seq === withdrawPreviewSeq) el.textContent = '—'; }
+}
+
+// ===== POSITIONS =====
+async function scanRange(count, read){
+  const n = Number(count), start = Math.max(0, n - SCAN_LIMIT), out = [];
+  for(let i = start; i < n; i += SCAN_BATCH){
+    const ids = [];
+    for(let j = i; j < Math.min(n, i + SCAN_BATCH); j++) ids.push(j);
+    const res = await Promise.allSettled(ids.map(id => read(id)));
+    res.forEach((r, k) => { if(r.status === 'fulfilled') out.push({id: ids[k], v: r.value}); });
+  }
+  return out;
+}
+
+let positionsSeq = 0;
+async function fetchPositions(){
+  if(!connected || !walletAddress || !coveredCallContract) return;
+  const seq = ++positionsSeq;
+  const me = walletAddress.toLowerCase();
+  try {
+    const [callCount, putCount, binCount] = await Promise.all([coveredCallContract.nextId(), cashPutContract.nextId(), binaryContract.nextId()]);
+    const [calls, puts, bins, shares] = await Promise.all([
+      scanRange(callCount, id => coveredCallContract.options(id)),
+      scanRange(putCount,  id => cashPutContract.options(id)),
+      scanRange(binCount,  id => binaryContract.binaries(id)),
+      vaultContract.balanceOf(walletAddress).catch(() => 0n)
+    ]);
+    const positions = [];
+    const addOptions = (rows, kind) => rows.forEach(({id, v:o}) => {
+      const isWriter = o.writer.toLowerCase() === me, isBuyer = o.buyer.toLowerCase() === me;
+      if(!isWriter && !isBuyer) return;
+      positions.push({type:kind, id, role: isWriter ? 'writer' : 'buyer', ticker:o.ticker,
+        strike:fromWei(o.strike), collateral:fromWei(o.collateral), premium:fromWei(o.premium),
+        expiry:Number(o.expiry), status:Number(o.status), listed: o.buyer === ZERO_ADDR});
+    });
+    addOptions(calls, 'CALL');
+    addOptions(puts, 'PUT');
+    bins.forEach(({id, v:b}) => {
+      if(b.bettor.toLowerCase() !== me) return;
+      positions.push({type:'BINARY', id, ticker:b.ticker, strike:fromWei(b.strike), betSize:fromWei(b.betSize),
+        direction: Number(b.direction) === 0 ? 'ABOVE' : 'BELOW', expiry:Number(b.expiry), status:Number(b.status)});
+    });
+    if(shares > 0n){
+      const value = await vaultContract.previewWithdraw(shares).catch(() => null);
+      positions.push({type:'VAULT', shares:fromWei(shares), value: value != null ? fromWei(value) : null, status:0});
+    }
+    if(seq !== positionsSeq) return;
+    allPositions = positions.sort((a, b) => (b.expiry || 9e12) - (a.expiry || 9e12));
+    renderPositions();
+  } catch(e){ console.warn('fetchPositions failed:', e.message); }
+}
+
+// Open = live positions; Listed = your options nobody has bought yet; History = closed / settled
+function bucketOf(p){
+  if(p.type === 'VAULT') return 'open';
+  if(p.status !== 0) return 'history';
+  if((p.type === 'CALL' || p.type === 'PUT') && p.listed) return 'orders';
+  return 'open';
+}
+
+function posCard(p){
+  const now = nowSec(), expired = p.expiry && p.expiry <= now;
+  const row = (k, v, cls='') => `<div class="pos-row"><span class="k">${k}</span><span class="v ${cls}">${v}</span></div>`;
+  const kind = p.type.toLowerCase();
+  if(p.type === 'VAULT') return `
+    <div class="pos-card">
+      <div class="pos-card-head"><span class="pos-ticker">VAULT</span><span class="pos-badge vault">xUSDG</span></div>
+      ${row('Shares', p.shares.toFixed(4))}
+      ${row('USDG value', p.value != null ? p.value.toFixed(2) + ' USDG' : '—', 'pos')}
+      <div class="pos-actions"><button class="pos-btn close" onclick="withdrawAllVault()">Withdraw all</button></div>
+    </div>`;
+  if(p.type === 'BINARY'){
+    let actions = '';
+    if(p.status === 0) actions = expired
+      ? `<button class="pos-btn" onclick="settleBet(${p.id})">Settle</button>`
+      : `<button class="pos-btn" disabled>Settles ${fmtExpiry(p.expiry)}</button>`;
+    return `
+    <div class="pos-card">
+      <div class="pos-card-head"><span class="pos-ticker">${esc(p.ticker)}</span><span class="pos-badge binary">BINARY #${p.id}</span></div>
+      ${row('Direction', `${p.direction} ${fmtPrice(p.strike)}`, p.direction === 'ABOVE' ? 'pos' : 'neg')}
+      ${row('Expiry', p.status === 0 ? fmtExpiry(p.expiry) : 'Settled')}
+      ${row('Bet', p.betSize.toFixed(2) + ' USDG')}
+      ${CHAIN_CONSTANTS.payoutBps != null ? row('Payout if right', (p.betSize * CHAIN_CONSTANTS.payoutBps / 10000).toFixed(2) + ' USDG', 'pos') : ''}
+      ${actions ? `<div class="pos-actions">${actions}</div>` : ''}
+    </div>`;
+  }
+  // CALL / PUT
+  let actions = '';
+  if(p.status === 0){
+    if(p.role === 'writer' && p.listed) actions = `<button class="pos-btn close" onclick="optionAction('cancel','${kind}',${p.id})">Cancel listing</button>`;
+    else if(p.role === 'writer') actions = expired
+      ? `<button class="pos-btn" onclick="optionAction('expire','${kind}',${p.id})">Expire &amp; reclaim</button>`
+      : `<button class="pos-btn" disabled>Expires ${fmtExpiry(p.expiry)}</button>`;
+    else if(p.role === 'buyer') actions = `<button class="pos-btn" onclick="optionAction('exercise','${kind}',${p.id})">Exercise</button>` +
+      (expired ? `<button class="pos-btn" onclick="optionAction('expire','${kind}',${p.id})">Expire</button>` : '');
+  }
+  const roleLabel = p.role === 'writer' ? (p.listed ? 'Written · listed' : 'Written · sold') : 'Bought';
+  return `
+    <div class="pos-card">
+      <div class="pos-card-head"><span class="pos-ticker">${esc(p.ticker)}</span><span class="pos-badge ${kind}">${p.type} #${p.id}</span></div>
+      ${row('Role', roleLabel)}
+      ${row('Strike', fmtPrice(p.strike))}
+      ${row('Expiry', p.status === 0 ? fmtExpiry(p.expiry) : 'Closed')}
+      ${row('Collateral', p.collateral.toFixed(2) + ' USDG')}
+      ${row(p.role === 'buyer' ? 'Premium paid' : 'Premium', p.premium.toFixed(2) + ' USDG', p.role === 'buyer' ? '' : 'pos')}
+      ${actions ? `<div class="pos-actions">${actions}</div>` : ''}
+    </div>`;
+}
+
+function renderPositions(){
+  const lists = [$('positionsList'), $('mobilePositionsList')];
+  let html;
+  if(!connected){
+    html = `<div class="empty-state"><p>Connect wallet to see positions</p><button class="pos-btn" style="flex:none;padding:6px 14px" onclick="showConnect()">Connect</button></div>`;
+  } else {
+    const items = allPositions.filter(p => bucketOf(p) === activePosTab);
+    const emptyText = {open:'No open positions', orders:'No listed options', history:'No closed positions yet'}[activePosTab];
+    html = items.length ? items.map(posCard).join('') : `<div class="empty-state"><p>${emptyText}</p></div>`;
+  }
+  lists.forEach(l => { if(l) l.innerHTML = html; });
+  const openCount = allPositions.filter(p => bucketOf(p) !== 'history').length;
+  $('posCount').textContent = openCount;
+  $('posToggleCount').textContent = openCount;
+}
+
+async function optionAction(action, kind, id){
+  if(!(await ready())) return;
+  const c = (kind === 'put' ? cashPutContract : coveredCallContract).connect(signer);
+  const labels = {cancel:'Cancelling', expire:'Expiring', exercise:'Exercising'};
+  const done = {cancel:'✓ Listing cancelled, collateral returned', expire:'✓ Option expired', exercise:'✓ Option exercised'};
+  try {
+    showToast(`${labels[action]} #${id}… confirm in your wallet`);
+    const tx = await c[action](id);
+    await tx.wait();
+    showToast(done[action]);
+    await afterTx();
+  } catch(err){ showToast(errMsg(err)); console.error(err); }
+}
+
+async function settleBet(id){
+  if(!(await ready())) return;
+  try {
+    showToast(`Settling bet #${id}… confirm in your wallet`);
+    const tx = await binaryContract.connect(signer).settle(id);
+    await tx.wait();
+    showToast('✓ Bet settled');
+    await afterTx();
+  } catch(err){ showToast(errMsg(err)); console.error(err); }
+}
+
+async function withdrawAllVault(){
+  if(!(await ready())) return;
+  try {
+    const bal = await vaultContract.balanceOf(walletAddress);
+    if(bal === 0n){ showToast('No vault shares to withdraw.'); return; }
+    showToast('Confirm the withdrawal in your wallet…');
+    const tx = await vaultContract.connect(signer).withdraw(bal);
+    await tx.wait();
+    showToast('✓ Withdrawn from vault');
+    await afterTx();
+  } catch(err){ showToast(errMsg(err)); console.error(err); }
+}
+
+// ===== SIDE TOGGLES =====
+function setSide(side){
+  activeSide = side;
+  $('sideWrite').classList.toggle('active', side === 'write');
+  $('sideBuy').classList.toggle('active', side === 'buy');
+  $('writeBody').style.display = side === 'write' ? '' : 'none';
+  $('buyBody').style.display = side === 'buy' ? '' : 'none';
+  if(side === 'buy') loadBuyOption();
+}
+
+function setVaultSide(side){
+  activeVaultSide = side;
+  $('vaultDepositTab').classList.toggle('active', side === 'deposit');
+  $('vaultWithdrawTab').classList.toggle('active', side === 'withdraw');
+  $('vaultDepositBody').style.display = side === 'deposit' ? '' : 'none';
+  $('vaultWithdrawBody').style.display = side === 'withdraw' ? '' : 'none';
+  if(side === 'withdraw' && connected && vaultContract){
+    vaultContract.balanceOf(walletAddress).then(shares => {
+      $('vaultWithdrawHint').firstChild.textContent = `Your balance: ${fromWei(shares).toFixed(4)} xUSDG `;
+    }).catch(() => {});
+  }
+}
+
+function setProd(prod){
+  activeProd = prod;
+  document.querySelectorAll('.prod-tab').forEach(b => b.classList.toggle('active', b.dataset.prod === prod));
+  if(prod === 'write' || prod === 'put') selectedMkt._strikeSet = false;
+  updateHeader();
+  updateForm();
+}
+
+function setPosTab(tab){
+  activePosTab = tab;
+  document.querySelectorAll('.pos-tab').forEach(b => b.classList.toggle('active', b.dataset.pt === tab));
+  renderPositions();
+}
+
+function toggleMobilePositions(force){
+  const el = $('mobilePositions'), btn = $('posToggle');
+  const open = typeof force === 'boolean' ? force : !el.classList.contains('open');
+  el.classList.toggle('open', open);
+  btn.classList.toggle('open', open);
+}
+
+// ===== EVENT LISTENERS =====
+document.querySelectorAll('.prod-tab').forEach(btn => btn.addEventListener('click', () => setProd(btn.dataset.prod)));
+
+document.querySelectorAll('.cat-tab').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeCat = btn.dataset.cat;
+  renderList();
+}));
+
+document.querySelectorAll('.pos-tab').forEach(btn => btn.addEventListener('click', () => setPosTab(btn.dataset.pt)));
+
+document.querySelectorAll('.expiry-btn').forEach(btn => btn.addEventListener('click', () => {
+  btn.closest('.expiry-grid').querySelectorAll('.expiry-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateEstimates();
+}));
+
+document.querySelectorAll('.binary-card').forEach(card => card.addEventListener('keydown', e => {
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.click(); }
+}));
+
+document.querySelectorAll('.topbar-nav a').forEach(a => a.addEventListener('click', e => {
+  e.preventDefault();
+  document.querySelectorAll('.topbar-nav a').forEach(b => b.classList.remove('active'));
+  a.classList.add('active');
+  const s = a.dataset.section;
+  if(s === 'markets'){ $('mktSearch').focus(); return; }
+  if(s === 'trade'){ setProd('write'); return; }
+  if(s === 'binary' || s === 'vault'){ setProd(s); return; }
+  if(s === 'positions'){
+    if(!connected){ showConnect(); return; }
+    setPosTab('open');
+    const panel = $('positionsPanel');
+    panel.classList.remove('flash'); void panel.offsetWidth; panel.classList.add('flash');
+  }
+}));
+
+$('mktSearch').addEventListener('input', renderList);
+$('strikeInput').addEventListener('input', updateEstimates);
+$('collateralInput').addEventListener('input', updateEstimates);
+$('premiumInput').addEventListener('input', updateEstimates);
+$('binSize').addEventListener('input', updateEstimates);
+$('vaultDepositInput').addEventListener('input', previewVaultDeposit);
+$('vaultWithdrawInput').addEventListener('input', previewWithdraw);
+let buyIdTimer;
+$('buyOptionId').addEventListener('input', () => { clearTimeout(buyIdTimer); buyIdTimer = setTimeout(loadBuyOption, 350); });
+
+// ===== REFRESH LOOPS =====
+setInterval(async () => {
+  if(!oracleContract || document.hidden) return;
+  await Promise.allSettled([fetchAllPrices(), fetchVaultStats(), fetchReservePool(), fetchContractCounts(), refreshBalance()]);
+}, 30000);
+setInterval(() => { if(connected && !document.hidden) fetchPositions(); }, 60000);
+setInterval(updateOracleAge, 1000);
+
+// ===== INIT =====
+// app.html#TSLA opens on that market (the markets page links here)
+function marketFromHash(){
+  const t = decodeURIComponent(location.hash.slice(1)).toUpperCase();
+  return MARKETS.find(m => m.t === t);
+}
+if(marketFromHash()) selectedMkt = marketFromHash();
+window.addEventListener('hashchange', () => { const m = marketFromHash(); if(m) selectMkt(m.t); });
+renderList();
+updateHeader(true);
+renderChart();
+updateForm();
+renderPositions();
+if(window.ethers){
+  initContracts();
+  tryAutoConnect();
+} else {
+  $('oracleTs').textContent = 'Could not load ethers.js — check your connection';
+}
 </script>
 </body>
 </html>
