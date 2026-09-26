@@ -119,6 +119,8 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
 }
 .mkt-row:hover{background:var(--panel)}
 .mkt-row.active{background:var(--accent-dim);border-left:2px solid var(--accent-hi);}
+.mkt-row.no-feed{opacity:.45;}
+.mkt-row.no-feed .ticker{color:var(--muted);}
 .mkt-left{display:flex;align-items:center;gap:8px;}
 .ticker{font-family:var(--mono);font-size:12px;color:var(--ink);font-weight:500;min-width:38px;}
 .mkt-name{font-size:11px;color:var(--muted);}
@@ -789,9 +791,9 @@ const ERC20_ABI = [
 // ===== END ABIs =====
 
 // ===== MARKET DEFINITIONS =====
-// tickers with Chainlink feeds registered = live prices
-// others fall back to last known / show "—"
-const FEED_TICKERS = new Set(['NVDA','AAPL','TSLA','MSFT','GOOGL','AMZN','META','SPY','QQQ']);
+// FEED_TICKERS populated dynamically on startup via oracleContract.isFeedActive()
+// Do not hardcode — feeds are added on-chain over time
+const FEED_TICKERS = new Set();
 
 const MARKETS = [
   {t:'NVDA', n:'NVIDIA',        cat:'tech',  p:null, chg:null},
@@ -886,6 +888,9 @@ async function initContracts(){
     const vaultHint = document.getElementById('vaultDepositHint');
     if(vaultHint) vaultHint.textContent = `Min deposit: ${CHAIN_CONSTANTS.minDeposit} USDG`;
 
+    // Discover which tickers have live Chainlink feeds on-chain
+    await discoverFeedTickers();
+
     await Promise.all([fetchAllPrices(), fetchVaultStats(), fetchReservePool(), fetchContractCounts()]);
   } catch(e){
     console.warn('RPC init failed:', e.message);
@@ -919,6 +924,26 @@ async function fetchContractCounts(){
     if(statPos) statPos.textContent = openPos;
     if(statBin) statBin.textContent = binPos;
   } catch(e){}
+}
+
+// ===== DISCOVER WHICH TICKERS HAVE LIVE CHAINLINK FEEDS =====
+async function discoverFeedTickers(){
+  try {
+    const results = await Promise.allSettled(
+      MARKETS.map(m => oracleContract.isFeedActive(m.t).then(active => ({t: m.t, active})))
+    );
+    FEED_TICKERS.clear();
+    results.forEach(r => {
+      if(r.status === 'fulfilled' && r.value.active){
+        FEED_TICKERS.add(r.value.t);
+      }
+    });
+    renderList();
+    console.log('Live feeds:', [...FEED_TICKERS].join(', '));
+  } catch(e){
+    console.warn('Feed discovery failed, falling back:', e.message);
+    ['NVDA','AAPL','TSLA','MSFT','GOOGL','AMZN','META','SPY','QQQ'].forEach(t => FEED_TICKERS.add(t));
+  }
 }
 
 // ===== FETCH PRICES FROM CHAINLINK VIA ORACLE CONTRACT =====
@@ -1005,7 +1030,7 @@ function renderList(){
   document.getElementById('marketList').innerHTML = items.map(m=>{
     const {txt, cls} = fmtChg(m.chg);
     return `
-    <div class="mkt-row${m.t===selectedMkt.t?' active':''}" onclick="selectMkt('${m.t}')">
+    <div class="mkt-row${m.t===selectedMkt.t?' active':''}${!FEED_TICKERS.size||FEED_TICKERS.has(m.t)?'':' no-feed'}" onclick="selectMkt('${m.t}')">
       <div class="mkt-left">
         <span class="ticker">${m.t}</span>
         <div><div class="mkt-name">${m.n}</div></div>
