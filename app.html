@@ -303,6 +303,18 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
 *::-webkit-scrollbar{width:4px;height:4px;}
 *::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
 
+/* toast notifications */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--panel-2);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--mono);font-size:12px;
+  padding:10px 18px;border-radius:8px;z-index:999;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  animation:fadeup .2s ease;pointer-events:none;
+  white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;
+}
+@keyframes fadeup{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
 @media(max-width:900px){
   .positions-panel{display:none}
   .sidebar{width:200px}
@@ -517,7 +529,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
             <div class="order-body">
               <div>
                 <div class="field-label">Amount (USDG)</div>
-                <div class="field"><input type="number" value="1000" step="100"><div class="unit">Min deposit: 50 USDG</div></div>
+                <div class="field"><input type="number" id="vaultDepositInput" value="1000" step="100"><div class="unit">Min deposit: 50 USDG</div></div>
               </div>
               <div class="premium-row">
                 <span class="label">Weekly yield est.</span>
@@ -664,6 +676,8 @@ const ERC20_ABI = [
   "function balanceOf(address account) view returns (uint256)"
 ];
 
+// ===== END ABIs =====
+
 // ===== MARKET DEFINITIONS =====
 // tickers with Chainlink feeds registered = live prices
 // others fall back to last known / show "—"
@@ -719,12 +733,6 @@ const CHAIN_CONSTANTS = {
   minCollateral: 100,
   minDeposit: 50
 };
-
-const ERC20_ABI = [
-  "function approve(address spender, uint256 amount) external returns (bool)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function balanceOf(address account) view returns (uint256)"
-];
 
 // ===== INIT RPC =====
 async function initContracts(){
