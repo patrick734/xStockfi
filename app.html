@@ -119,8 +119,6 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
 }
 .mkt-row:hover{background:var(--panel)}
 .mkt-row.active{background:var(--accent-dim);border-left:2px solid var(--accent-hi);}
-.mkt-row.no-feed{opacity:.45;}
-.mkt-row.no-feed .ticker{color:var(--muted);}
 .mkt-left{display:flex;align-items:center;gap:8px;}
 .ticker{font-family:var(--mono);font-size:12px;color:var(--ink);font-weight:500;min-width:38px;}
 .mkt-name{font-size:11px;color:var(--muted);}
@@ -300,6 +298,10 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
 .vault-stat b{font-family:var(--mono);font-size:16px;display:block;}
 .vault-stat span{font-size:11px;color:var(--muted);}
 .apy{color:var(--green);}
+
+/* no-feed dim */
+.mkt-row.no-feed{opacity:.38;}
+.mkt-row.no-feed .mkt-price{color:var(--muted);}
 
 /* scrollbar global */
 *::-webkit-scrollbar{width:4px;height:4px;}
@@ -530,10 +532,11 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
         <div id="formWrite">
           <div class="order-form">
             <div class="order-form-head">
-              <div class="order-side buy active" id="sideWrite">WRITE (SELL)</div>
-              <div class="order-side sell" id="sideBuy">BUY TO CLOSE</div>
+              <div class="order-side buy active" id="sideWrite" onclick="setSide('write')">WRITE (SELL)</div>
+              <div class="order-side sell" id="sideBuy" onclick="setSide('buy')">BUY TO CLOSE</div>
             </div>
-            <div class="order-body">
+            <!-- WRITE BODY -->
+            <div class="order-body" id="writeBody">
               <div>
                 <div class="field-label">Strike Price</div>
                 <div class="field"><input type="number" id="strikeInput" value="0" step="5"><div class="unit">USD · Oracle settled</div></div>
@@ -541,6 +544,10 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
               <div>
                 <div class="field-label">Collateral (USDG)</div>
                 <div class="field"><input type="number" id="collateralInput" value="500" step="10"><div class="unit" id="collateralHint">USDG · min 100</div></div>
+              </div>
+              <div>
+                <div class="field-label">Your Premium Ask (USDG)</div>
+                <div class="field"><input type="number" id="premiumInput" value="25" step="1"><div class="unit">Buyer pays this to open position</div></div>
               </div>
               <div>
                 <div class="field-label">Expiry</div>
@@ -556,6 +563,18 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
                 <span class="val" id="premiumVal">—</span>
               </div>
               <button class="btn-trade" id="tradeBtn" onclick="executeTrade()">Write Call → Connect Wallet</button>
+            </div>
+            <!-- BUY TO CLOSE BODY -->
+            <div class="order-body" id="buyBody" style="display:none">
+              <div>
+                <div class="field-label">Option ID</div>
+                <div class="field"><input type="number" id="buyOptionId" value="" placeholder="e.g. 42" step="1"><div class="unit">ID of the option to buy</div></div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Cost</span>
+                <span class="val" id="buyPremiumDisplay">Enter ID to load</span>
+              </div>
+              <button class="btn-trade" onclick="executeBuy()">Buy Option → Connect Wallet</button>
             </div>
           </div>
 
@@ -624,10 +643,11 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
           </div>
           <div class="order-form">
             <div class="order-form-head">
-              <div class="order-side buy active">DEPOSIT</div>
-              <div class="order-side sell">WITHDRAW</div>
+              <div class="order-side buy active" id="vaultDepositTab" onclick="setVaultSide('deposit')">DEPOSIT</div>
+              <div class="order-side sell" id="vaultWithdrawTab" onclick="setVaultSide('withdraw')">WITHDRAW</div>
             </div>
-            <div class="order-body">
+            <!-- DEPOSIT BODY -->
+            <div class="order-body" id="vaultDepositBody">
               <div>
                 <div class="field-label">Amount (USDG)</div>
                 <div class="field"><input type="number" id="vaultDepositInput" value="1000" step="100"><div class="unit" id="vaultDepositHint">Min deposit: 50 USDG</div></div>
@@ -637,6 +657,18 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
                 <span class="val" style="color:var(--green)" id="vaultWeeklyYield">—</span>
               </div>
               <button class="btn-trade" onclick="executeTrade()">Deposit to Vault → Connect Wallet</button>
+            </div>
+            <!-- WITHDRAW BODY -->
+            <div class="order-body" id="vaultWithdrawBody" style="display:none">
+              <div>
+                <div class="field-label">Shares to Redeem (xUSDG)</div>
+                <div class="field"><input type="number" id="vaultWithdrawInput" value="" placeholder="Enter shares" step="0.0001"><div class="unit" id="vaultWithdrawHint">Your balance: — xUSDG</div></div>
+              </div>
+              <div class="premium-row">
+                <span class="label">Est. USDG you receive</span>
+                <span class="val" style="color:var(--green)" id="vaultWithdrawPreview">—</span>
+              </div>
+              <button class="btn-trade sell-mode" onclick="executeWithdraw()">Withdraw from Vault → Connect Wallet</button>
             </div>
           </div>
           <div class="info-card">
@@ -791,9 +823,9 @@ const ERC20_ABI = [
 // ===== END ABIs =====
 
 // ===== MARKET DEFINITIONS =====
-// FEED_TICKERS populated dynamically on startup via oracleContract.isFeedActive()
-// Do not hardcode — feeds are added on-chain over time
-const FEED_TICKERS = new Set();
+// tickers with Chainlink feeds registered — updated dynamically via isFeedActive()
+// fallback set used until on-chain check completes
+let FEED_TICKERS = new Set(['NVDA','AAPL','TSLA','MSFT','GOOGL','AMZN','META','SPY','QQQ']);
 
 const MARKETS = [
   {t:'NVDA', n:'NVIDIA',        cat:'tech',  p:null, chg:null},
@@ -834,6 +866,8 @@ let binaryDir = null;
 let connected = false;
 let walletAddress = null;
 let signer = null;
+let activeSide = 'write';      // 'write' | 'buy'
+let activeVaultSide = 'deposit'; // 'deposit' | 'withdraw'
 let oracleAge = 0;
 let provider, oracleContract, vaultContract, coveredCallContract, cashPutContract, binaryContract;
 
@@ -888,10 +922,7 @@ async function initContracts(){
     const vaultHint = document.getElementById('vaultDepositHint');
     if(vaultHint) vaultHint.textContent = `Min deposit: ${CHAIN_CONSTANTS.minDeposit} USDG`;
 
-    // Discover which tickers have live Chainlink feeds on-chain
-    await discoverFeedTickers();
-
-    await Promise.all([fetchAllPrices(), fetchVaultStats(), fetchReservePool(), fetchContractCounts()]);
+    await Promise.all([discoverFeedTickers(), fetchAllPrices(), fetchVaultStats(), fetchReservePool(), fetchContractCounts()]);
   } catch(e){
     console.warn('RPC init failed:', e.message);
   }
@@ -924,26 +955,6 @@ async function fetchContractCounts(){
     if(statPos) statPos.textContent = openPos;
     if(statBin) statBin.textContent = binPos;
   } catch(e){}
-}
-
-// ===== DISCOVER WHICH TICKERS HAVE LIVE CHAINLINK FEEDS =====
-async function discoverFeedTickers(){
-  try {
-    const results = await Promise.allSettled(
-      MARKETS.map(m => oracleContract.isFeedActive(m.t).then(active => ({t: m.t, active})))
-    );
-    FEED_TICKERS.clear();
-    results.forEach(r => {
-      if(r.status === 'fulfilled' && r.value.active){
-        FEED_TICKERS.add(r.value.t);
-      }
-    });
-    renderList();
-    console.log('Live feeds:', [...FEED_TICKERS].join(', '));
-  } catch(e){
-    console.warn('Feed discovery failed, falling back:', e.message);
-    ['NVDA','AAPL','TSLA','MSFT','GOOGL','AMZN','META','SPY','QQQ'].forEach(t => FEED_TICKERS.add(t));
-  }
 }
 
 // ===== FETCH PRICES FROM CHAINLINK VIA ORACLE CONTRACT =====
@@ -1030,7 +1041,7 @@ function renderList(){
   document.getElementById('marketList').innerHTML = items.map(m=>{
     const {txt, cls} = fmtChg(m.chg);
     return `
-    <div class="mkt-row${m.t===selectedMkt.t?' active':''}${!FEED_TICKERS.size||FEED_TICKERS.has(m.t)?'':' no-feed'}" onclick="selectMkt('${m.t}')">
+    <div class="mkt-row${m.t===selectedMkt.t?' active':''}${!FEED_TICKERS.has(m.t)?' no-feed':''}" onclick="selectMkt('${m.t}')">
       <div class="mkt-left">
         <span class="ticker">${m.t}</span>
         <div><div class="mkt-name">${m.n}</div></div>
@@ -1216,8 +1227,11 @@ async function mockConnect(name){
     const btn = document.getElementById('connectBtn');
     btn.outerHTML = `<div class="wallet-connected"><span class="wallet-dot"></span><span style="font-family:var(--mono);font-size:12px">${short}</span></div>`;
     document.querySelectorAll('.btn-trade').forEach(b=>{
-      b.textContent = b.textContent.replace(' → Connect Wallet','');
+      b.textContent = b.textContent.replace(' → Connect Wallet', '');
     });
+    // also update vault withdraw button if visible
+    const wdBtn = document.querySelector('#vaultWithdrawBody .btn-trade');
+    if(wdBtn) wdBtn.textContent = 'Withdraw from Vault';
     showToast('Wallet connected');
     await fetchPositions();
   } catch(err){
@@ -1322,6 +1336,7 @@ async function executeTrade(){
       await fetchReservePool();
 
     } else if(prod === 'vault'){
+      if(activeVaultSide === 'withdraw'){ await executeWithdraw(); return; }
       const amountRaw = parseFloat(document.getElementById('vaultDepositInput')?.value||0);
       if(amountRaw < CHAIN_CONSTANTS.minDeposit){
         showToast(`Min deposit is ${CHAIN_CONSTANTS.minDeposit} USDG.`); return;
@@ -1552,6 +1567,118 @@ function showMockPositions(){
     </div>`;
 }
 
+// ===== SIDE TOGGLES =====
+function setSide(side){
+  activeSide = side;
+  const sw = document.getElementById('sideWrite');
+  const sb = document.getElementById('sideBuy');
+  const wb = document.getElementById('writeBody');
+  const bb = document.getElementById('buyBody');
+  if(side === 'write'){
+    sw.classList.add('active'); sb.classList.remove('active');
+    wb.style.display = ''; bb.style.display = 'none';
+  } else {
+    sw.classList.remove('active'); sb.classList.add('active');
+    wb.style.display = 'none'; bb.style.display = '';
+  }
+}
+
+function setVaultSide(side){
+  activeVaultSide = side;
+  const dt = document.getElementById('vaultDepositTab');
+  const wt = document.getElementById('vaultWithdrawTab');
+  const db = document.getElementById('vaultDepositBody');
+  const wb = document.getElementById('vaultWithdrawBody');
+  if(side === 'deposit'){
+    dt.classList.add('active'); wt.classList.remove('active');
+    db.style.display = ''; wb.style.display = 'none';
+  } else {
+    dt.classList.remove('active'); wt.classList.add('active');
+    db.style.display = 'none'; wb.style.display = '';
+    // pre-fill user's share balance if connected
+    if(connected && walletAddress && vaultContract){
+      vaultContract.balanceOf(walletAddress).then(shares => {
+        const sharesNum = Number(shares)/1e18;
+        const hint = document.getElementById('vaultWithdrawHint');
+        if(hint) hint.textContent = `Your balance: ${sharesNum.toFixed(4)} xUSDG`;
+        const inp = document.getElementById('vaultWithdrawInput');
+        if(inp && !inp.value) inp.value = sharesNum.toFixed(4);
+        if(shares > 0n){
+          vaultContract.previewWithdraw(shares).then(out => {
+            const el = document.getElementById('vaultWithdrawPreview');
+            if(el) el.textContent = (Number(out)/1e18).toFixed(2) + ' USDG';
+          }).catch(()=>{});
+        }
+      }).catch(()=>{});
+    }
+  }
+}
+
+// ===== BUY TO CLOSE =====
+async function executeBuy(){
+  if(!connected){ showConnect(); return; }
+  const id = parseInt(document.getElementById('buyOptionId').value);
+  if(isNaN(id) || id < 0){ showToast('Enter a valid Option ID.'); return; }
+  const readContract  = activeProd === 'put' ? cashPutContract  : coveredCallContract;
+  const signerContract= activeProd === 'put' ? cashPutContract.connect(signer) : coveredCallContract.connect(signer);
+  const addr          = activeProd === 'put' ? window.XSTOCKFI.contracts.cashSecuredPut : window.XSTOCKFI.contracts.coveredCall;
+  try {
+    showToast('Loading option #' + id + '…');
+    const opt = await readContract.options(id);
+    const premium = opt.premium; // uint256 in wei
+    const premDisplay = document.getElementById('buyPremiumDisplay');
+    if(premDisplay) premDisplay.textContent = (Number(premium)/1e18).toFixed(2) + ' USDG';
+    await ensureApproval(addr, premium);
+    showToast('Buying option #' + id + '…');
+    const tx = await signerContract.buy(id);
+    showToast('Pending…');
+    await tx.wait();
+    showToast('✓ Option #' + id + ' bought!');
+    await fetchPositions();
+  } catch(err){
+    if(err.code === 4001 || err.code === 'ACTION_REJECTED') showToast('Transaction rejected.');
+    else showToast('Error: ' + (err.reason || err.shortMessage || err.message || 'unknown'));
+    console.error(err);
+  }
+}
+
+// ===== VAULT WITHDRAW =====
+async function executeWithdraw(){
+  if(!connected){ showConnect(); return; }
+  const sharesRaw = parseFloat(document.getElementById('vaultWithdrawInput').value||0);
+  if(sharesRaw <= 0){ showToast('Enter shares to withdraw.'); return; }
+  const shares = ethers.parseUnits(sharesRaw.toFixed(18), 18);
+  try {
+    showToast('Withdrawing from vault…');
+    const tx = await vaultContract.connect(signer).withdraw(shares);
+    showToast('Pending…');
+    await tx.wait();
+    showToast('✓ Withdrawn from vault!');
+    await fetchVaultStats();
+    await fetchPositions();
+  } catch(err){
+    if(err.code === 4001 || err.code === 'ACTION_REJECTED') showToast('Transaction rejected.');
+    else showToast('Error: ' + (err.reason || err.shortMessage || err.message || 'unknown'));
+    console.error(err);
+  }
+}
+
+// ===== DYNAMIC FEED DISCOVERY =====
+async function discoverFeedTickers(){
+  try {
+    const results = await Promise.allSettled(
+      MARKETS.map(m => oracleContract.isFeedActive(m.t).then(active => ({ t: m.t, active })))
+    );
+    const active = results
+      .filter(r => r.status === 'fulfilled' && r.value.active)
+      .map(r => r.value.t);
+    if(active.length > 0){
+      FEED_TICKERS = new Set(active);
+      renderList(); // re-render with updated dim states
+    }
+  } catch(e){ console.warn('discoverFeedTickers:', e.message); }
+}
+
 // ===== EVENT LISTENERS =====
 document.querySelectorAll('.prod-tab').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -1613,6 +1740,17 @@ document.querySelectorAll('.topbar-nav a').forEach(a=>{
   });
 });
 
+document.getElementById('buyOptionId').addEventListener('change', async ()=>{
+  const id = parseInt(document.getElementById('buyOptionId').value);
+  if(isNaN(id) || id < 0 || !oracleContract) return;
+  try {
+    const readContract = activeProd === 'put' ? cashPutContract : coveredCallContract;
+    const opt = await readContract.options(id);
+    const prem = Number(opt.premium)/1e18;
+    const el = document.getElementById('buyPremiumDisplay');
+    if(el) el.textContent = prem.toFixed(2) + ' USDG';
+  } catch(e){ /* option doesn't exist or wrong prod */ }
+});
 document.getElementById('strikeInput').addEventListener('input',()=>{
   const v = parseFloat(document.getElementById('strikeInput').value||0);
   document.getElementById('infoStrike').textContent = '$'+v.toFixed(2);
@@ -1621,6 +1759,16 @@ document.getElementById('collateralInput').addEventListener('input', updatePremi
 document.getElementById('mktSearch').addEventListener('input', renderList);
 document.getElementById('binSize').addEventListener('input', updatePremium);
 document.getElementById('vaultDepositInput').addEventListener('input', updatePremium);
+document.getElementById('vaultWithdrawInput').addEventListener('input', async ()=>{
+  const sharesRaw = parseFloat(document.getElementById('vaultWithdrawInput').value||0);
+  if(sharesRaw <= 0 || !vaultContract) return;
+  try {
+    const shares = ethers.parseUnits(sharesRaw.toFixed(18), 18);
+    const out = await vaultContract.previewWithdraw(shares);
+    const el = document.getElementById('vaultWithdrawPreview');
+    if(el) el.textContent = (Number(out)/1e18).toFixed(2) + ' USDG';
+  } catch(e){}
+});
 
 // ===== ORACLE REFRESH EVERY 30s =====
 setInterval(async ()=>{
