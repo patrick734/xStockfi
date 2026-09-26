@@ -1427,6 +1427,7 @@ async function fetchPositions(){
     } catch(e){}
 
     renderPositions(positions);
+    syncMobilePositions(positions);
   } catch(e){ console.warn('fetchPositions failed:', e.message); }
 }
 
@@ -1808,10 +1809,7 @@ function toggleMobilePositions(){
 }
 
 // sync mobile positions list when positions update
-const _origRenderPositions = renderPositions;
-function renderPositions(positions){
-  _origRenderPositions(positions);
-  // also update mobile list
+function syncMobilePositions(positions){
   const mList = document.getElementById('mobilePositionsList');
   const mCount = document.getElementById('posToggleCount');
   if(mList) mList.innerHTML = document.getElementById('positionsList').innerHTML;
