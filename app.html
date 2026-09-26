@@ -439,7 +439,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
               </div>
               <div>
                 <div class="field-label">Collateral (USDG)</div>
-                <div class="field"><input type="number" id="collateralInput" value="500" step="10"><div class="unit">USDG · min 100</div></div>
+                <div class="field"><input type="number" id="collateralInput" value="500" step="10"><div class="unit" id="collateralHint">USDG · min 100</div></div>
               </div>
               <div>
                 <div class="field-label">Expiry</div>
@@ -463,7 +463,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
             <div class="info-row"><span class="k">Strike</span><span class="v" id="infoStrike">—</span></div>
             <div class="info-row"><span class="k">Current Price</span><span class="v" id="infoCurrent">—</span></div>
             <div class="info-row"><span class="k">Settlement</span><span class="v">Chainlink oracle</span></div>
-            <div class="info-row"><span class="k">Protocol Fee</span><span class="v">0.5%</span></div>
+            <div class="info-row"><span class="k">Protocol Fee</span><span class="v" id="infoFee">0.5%</span></div>
             <div class="info-row"><span class="k">Max Loss</span><span class="v" id="infoMaxLoss">Collateral only</span></div>
           </div>
         </div>
@@ -490,7 +490,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
               </div>
               <div>
                 <div class="field-label">Bet Size (USDG)</div>
-                <div class="field"><input type="number" id="binSize" value="100" step="10"><div class="unit">Max loss = bet size</div></div>
+                <div class="field"><input type="number" id="binSize" value="100" step="10"><div class="unit" id="binSizeHint">Max loss = bet size</div></div>
               </div>
               <div>
                 <div class="field-label">Expiry</div>
@@ -503,7 +503,7 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
               </div>
               <div class="premium-row">
                 <span class="label">Max Payout</span>
-                <span class="val" style="color:var(--green)" id="binPayout">185.00 USDG</span>
+                <span class="val" style="color:var(--green)" id="binPayout">—</span>
               </div>
               <button class="btn-trade" onclick="executeTrade()">Place Binary Bet → Connect Wallet</button>
             </div>
@@ -529,11 +529,11 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
             <div class="order-body">
               <div>
                 <div class="field-label">Amount (USDG)</div>
-                <div class="field"><input type="number" id="vaultDepositInput" value="1000" step="100"><div class="unit">Min deposit: 50 USDG</div></div>
+                <div class="field"><input type="number" id="vaultDepositInput" value="1000" step="100"><div class="unit" id="vaultDepositHint">Min deposit: 50 USDG</div></div>
               </div>
               <div class="premium-row">
                 <span class="label">Weekly yield est.</span>
-                <span class="val" style="color:var(--green)">~3.54 USDG / week</span>
+                <span class="val" style="color:var(--green)" id="vaultWeeklyYield">—</span>
               </div>
               <button class="btn-trade" onclick="executeTrade()">Deposit to Vault → Connect Wallet</button>
             </div>
@@ -758,13 +758,25 @@ async function initContracts(){
     CHAIN_CONSTANTS.minBet         = Number(minBet) / 1e18;
     CHAIN_CONSTANTS.minCollateral  = Number(minCollat) / 1e18;
 
-    // Update UI with real constants
+    // Update UI with real on-chain constants
     const payoutMult = (CHAIN_CONSTANTS.payoutBps / 10000).toFixed(2);
     document.querySelectorAll('.binary-payout').forEach(el => {
       el.textContent = `${payoutMult}× payout`;
     });
+    // protocol fee
+    const feeEl = document.getElementById('infoFee');
+    if(feeEl) feeEl.textContent = (CHAIN_CONSTANTS.feeBps / 100).toFixed(2) + '%';
+    // collateral hint
+    const collHint = document.getElementById('collateralHint');
+    if(collHint) collHint.textContent = `USDG · min ${CHAIN_CONSTANTS.minCollateral}`;
+    // binary bet hint
+    const binHint = document.getElementById('binSizeHint');
+    if(binHint) binHint.textContent = `Min bet: ${CHAIN_CONSTANTS.minBet} USDG`;
+    // vault deposit hint
+    const vaultHint = document.getElementById('vaultDepositHint');
+    if(vaultHint) vaultHint.textContent = `Min deposit: ${CHAIN_CONSTANTS.minDeposit} USDG`;
 
-    await Promise.all([fetchAllPrices(), fetchVaultStats(), fetchReservePool()]);
+    await Promise.all([fetchAllPrices(), fetchVaultStats(), fetchReservePool(), fetchContractCounts()]);
   } catch(e){
     console.warn('RPC init failed:', e.message);
   }
@@ -780,6 +792,22 @@ async function fetchReservePool(){
                      : poolUsdg >= 1e3 ? `$${(poolUsdg/1e3).toFixed(1)}K`
                      : `$${poolUsdg.toFixed(0)}`;
     }
+  } catch(e){}
+}
+
+async function fetchContractCounts(){
+  try {
+    const [callCount, putCount, binCount] = await Promise.all([
+      coveredCallContract.nextId(),
+      cashPutContract.nextId(),
+      binaryContract.nextId()
+    ]);
+    const openPos = Number(callCount) + Number(putCount);
+    const binPos  = Number(binCount);
+    const statPos = document.getElementById('stat-pos');
+    const statBin = document.getElementById('stat-bin');
+    if(statPos) statPos.textContent = openPos;
+    if(statBin) statBin.textContent = binPos;
   } catch(e){}
 }
 
@@ -932,6 +960,27 @@ function updatePremium(){
   document.getElementById('premiumVal').textContent = `~${est} USDG`;
   const prodLabel = activeProd==='put' ? 'Cash-Secured Put' : 'Covered Call';
   document.getElementById('infoProduct').textContent = prodLabel;
+  // weekly yield estimate from vault deposit input
+  const vaultAmt = parseFloat(document.getElementById('vaultDepositInput')?.value||0);
+  const weeklyEl = document.getElementById('vaultWeeklyYield');
+  if(weeklyEl && vaultAmt > 0){
+    // use pricePerShare gain as APY proxy; fall back to 18% APY estimate
+    const apyText = document.getElementById('vaultApy')?.textContent;
+    let apy = 0.18; // 18% fallback until chain data loads
+    if(apyText && apyText !== '—'){
+      const parsed = parseFloat(apyText.replace('%','').replace('+',''));
+      if(!isNaN(parsed) && parsed > 0) apy = parsed / 100;
+    }
+    const weekly = (vaultAmt * apy / 52).toFixed(2);
+    weeklyEl.textContent = `~${weekly} USDG / week`;
+  }
+  // binary payout
+  const size = parseFloat(document.getElementById('binSize')?.value||0);
+  if(size > 0){
+    const mult = CHAIN_CONSTANTS.payoutBps / 10000;
+    const binPayoutEl = document.getElementById('binPayout');
+    if(binPayoutEl) binPayoutEl.textContent = (size*mult).toFixed(2)+' USDG';
+  }
 }
 
 function updateForm(){
@@ -1432,16 +1481,15 @@ document.getElementById('strikeInput').addEventListener('input',()=>{
 });
 document.getElementById('collateralInput').addEventListener('input', updatePremium);
 document.getElementById('mktSearch').addEventListener('input', renderList);
-document.getElementById('binSize').addEventListener('input',()=>{
-  const size = parseFloat(document.getElementById('binSize').value||0);
-  const mult = CHAIN_CONSTANTS.payoutBps / 10000;
-  document.getElementById('binPayout').textContent = (size*mult).toFixed(2)+' USDG';
-});
+document.getElementById('binSize').addEventListener('input', updatePremium);
+document.getElementById('vaultDepositInput').addEventListener('input', updatePremium);
 
 // ===== ORACLE REFRESH EVERY 30s =====
 setInterval(async ()=>{
   if(oracleContract) await fetchAllPrices();
   if(vaultContract) await fetchVaultStats();
+  if(binaryContract) await Promise.all([fetchReservePool(), fetchContractCounts()]);
+  updatePremium();
 }, 30000);
 
 // tick oracle age display every second
