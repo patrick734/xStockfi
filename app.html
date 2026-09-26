@@ -323,6 +323,102 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
   .sidebar{display:none}
   .topbar-nav{display:none}
 }
+
+/* ===== MOBILE LAYOUT ===== */
+@media(max-width:600px){
+  :root{--header-h:48px}
+
+  /* body scrolls on mobile instead of fixed panels */
+  body{overflow:auto;overflow-x:hidden;padding-bottom:64px;}
+  .app-body{flex-direction:column;overflow:visible;height:auto;}
+  .main{overflow:visible;}
+
+  /* topbar compact */
+  .topbar{padding:0 12px;gap:8px;}
+  .chain-badge{display:none}
+  .btn-connect{padding:6px 12px;font-size:12px;}
+  .wallet-connected{font-size:11px;padding:5px 10px;}
+
+  /* stats strip scrollable */
+  .stats-strip{padding:0 12px;gap:0;}
+  .stat-item{padding:0 10px;}
+
+  /* trade panel full width */
+  .trade-panel{padding:12px;}
+
+  /* market header stacked */
+  .mkt-header{flex-direction:column;gap:8px;margin-bottom:14px;}
+  .mkt-header > div:last-child{text-align:left;}
+  .mkt-price-big{font-size:22px;}
+
+  /* chart smaller */
+  .chart-area{height:110px;margin-bottom:14px;}
+
+  /* form fields full width */
+  .field-row{grid-template-columns:1fr;}
+  .expiry-grid{grid-template-columns:repeat(4,1fr);}
+
+  /* binary cards */
+  .binary-grid{gap:8px;margin-bottom:12px;}
+  .binary-card{padding:14px;}
+  .binary-arrow{font-size:22px;margin-bottom:4px;}
+
+  /* product tabs scrollable */
+  .prod-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .prod-tabs::-webkit-scrollbar{display:none}
+  .prod-tab{white-space:nowrap;padding:10px 14px;font-size:10px;}
+
+  /* vault stats 2 col on mobile */
+  .vault-stats{grid-template-columns:1fr 1fr;gap:8px;}
+
+  /* info card smaller */
+  .info-card{padding:12px;}
+  .info-row{font-size:11px;}
+
+  /* bottom nav for market list on mobile */
+  .mobile-market-bar{
+    display:flex;align-items:center;gap:0;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    padding:6px 12px;gap:6px;
+    border-bottom:1px solid var(--line);
+    background:var(--char-2);
+  }
+  .mobile-market-bar::-webkit-scrollbar{display:none}
+  .mob-mkt{
+    flex:none;display:flex;align-items:center;gap:6px;
+    padding:6px 10px;border-radius:6px;border:1px solid transparent;
+    font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;
+    background:var(--panel);white-space:nowrap;
+  }
+  .mob-mkt.active{border-color:rgba(167,139,250,.4);background:var(--accent-dim);color:var(--accent-hi);}
+  .mob-mkt .mp{color:var(--muted);font-size:10px;}
+  .mob-mkt.active .mp{color:var(--accent-hi);}
+
+  /* positions bottom sheet toggle */
+  .pos-toggle{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;border-top:1px solid var(--line);
+    background:var(--char-2);cursor:pointer;
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  }
+  .pos-toggle svg{width:14px;height:14px;stroke:var(--muted);transition:transform .2s;}
+  .pos-toggle.open svg{transform:rotate(180deg);}
+  .mobile-positions{
+    border-top:1px solid var(--line);
+    overflow:hidden;max-height:0;transition:max-height .3s ease;
+  }
+  .mobile-positions.open{max-height:600px;}
+  .mobile-positions .positions-list{padding:10px 12px;max-height:400px;overflow-y:auto;}
+}
+/* hide mobile elements on desktop */
+.mobile-market-bar,.pos-toggle,.mobile-positions{display:none;}
+@media(max-width:600px){
+  .mobile-market-bar,.pos-toggle,.mobile-positions{display:block;}
+  .mobile-market-bar{display:flex;}
+  .content-area{flex-direction:column;}
+  .positions-panel{display:none!important;}
+  .stats-strip{display:none;}
+}
 </style>
 </head>
 <body>
@@ -366,6 +462,9 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
   <div class="stat-item"><span class="label">Oracle</span><span class="up">Chainlink · 30s</span></div>
   <div class="stat-item"><span class="label">Network</span><span class="val">RHC #4663</span></div>
 </div>
+
+<!-- MOBILE MARKET BAR (shown only on mobile) -->
+<div class="mobile-market-bar" id="mobileMarketBar"></div>
 
 <!-- MAIN BODY -->
 <div class="app-body">
@@ -569,6 +668,17 @@ input{font-family:var(--mono);border:none;outline:none;background:none;color:inh
     </div><!-- /content-area -->
   </div><!-- /main -->
 </div><!-- /app-body -->
+
+<!-- MOBILE POSITIONS (shown only on mobile) -->
+<div class="pos-toggle" id="posToggle" onclick="toggleMobilePositions()">
+  <span>Positions <span id="posToggleCount" style="color:var(--accent-hi)">0</span></span>
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 6l4 4 4-4"/></svg>
+</div>
+<div class="mobile-positions" id="mobilePositions">
+  <div class="positions-list" id="mobilePositionsList">
+    <div class="empty-state"><p style="color:var(--muted);font-size:12px;padding:16px 0;text-align:center;">Connect wallet to see positions</p></div>
+  </div>
+</div>
 
 <!-- CONNECT WALLET MODAL -->
 <div class="connect-overlay" id="connectOverlay" style="display:none" onclick="hideConnect(event)">
@@ -891,6 +1001,7 @@ function renderList(){
     if(q && !m.t.toLowerCase().includes(q) && !m.n.toLowerCase().includes(q)) return false;
     return true;
   });
+  if(typeof renderMobileMarketBar === 'function') renderMobileMarketBar();
   document.getElementById('marketList').innerHTML = items.map(m=>{
     const {txt, cls} = fmtChg(m.chg);
     return `
@@ -1501,8 +1612,40 @@ setInterval(()=>{
   }
 }, 1000);
 
+// ===== MOBILE MARKET BAR =====
+function renderMobileMarketBar(){
+  const bar = document.getElementById('mobileMarketBar');
+  if(!bar) return;
+  bar.innerHTML = MARKETS.slice(0,16).map(m => {
+    const active = m.t === selectedMkt.t ? ' active' : '';
+    const price = m.p != null ? '$'+m.p.toFixed(0) : '—';
+    return `<div class="mob-mkt${active}" onclick="selectMkt('${m.t}')">
+      <span>${m.t}</span><span class="mp">${price}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleMobilePositions(){
+  const el = document.getElementById('mobilePositions');
+  const btn = document.getElementById('posToggle');
+  el.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+// sync mobile positions list when positions update
+const _origRenderPositions = renderPositions;
+function renderPositions(positions){
+  _origRenderPositions(positions);
+  // also update mobile list
+  const mList = document.getElementById('mobilePositionsList');
+  const mCount = document.getElementById('posToggleCount');
+  if(mList) mList.innerHTML = document.getElementById('positionsList').innerHTML;
+  if(mCount) mCount.textContent = positions.length;
+}
+
 // ===== INIT =====
 renderList();
+renderMobileMarketBar();
 renderChart();
 updateForm();
 initContracts(); // fetches real prices async
