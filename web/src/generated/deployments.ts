@@ -175,7 +175,7 @@ export const deployments: Record<number, Deployment> = {
     "timelock": "0xEFbD5bc8b338Cc19Ef3fc73e3310ffd79A523841",
     "block": 80603470,
     "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
-    "token": null,
+    "token": "0x751761Ed5a121E4611128F24b4b92B2Cb1651bd1",
     "tokenSetter": "0xFbcF41853e32d18d3A0Fdd133d118A92f941D419",
     "oracle": "0x75144522a42aACD29eD465D42f43a916BCc330C3",
     "swapAdapter": "0x9E0541aACD5c59A9fb2cede445dEa0A95Fb81185",
@@ -183,6 +183,8 @@ export const deployments: Record<number, Deployment> = {
     "feeRouter": "0x12BC5639971fB9482aFa5E65fccfE9270D4a0fBd",
     "registry": "0xB98Ece5D527277d36FFacc73108367e10A316de9",
     "options": "0xB5879895c73C88E2072F9eE87dD90E48D3E23e19",
-    "binaries": "0x48846b41F56B3ec6FF5511f243098dA02BFa70C6"
+    "binaries": "0x48846b41F56B3ec6FF5511f243098dA02BFa70C6",
+    "tokenSymbol": "XSF",
+    "tokenName": "xStockFi"
   }
 } as Record<number, Deployment>;
