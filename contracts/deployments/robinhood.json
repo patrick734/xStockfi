@@ -1,0 +1,170 @@
+{
+  "network": "robinhood",
+  "chainId": 4663,
+  "roles": {
+    "admin": "0xFbcF41853e32d18d3A0Fdd133d118A92f941D419",
+    "guardian": "0xFbcF41853e32d18d3A0Fdd133d118A92f941D419",
+    "keeper": "0x39D2B21B5Da9d1731AE07b79C2ECa675ea9a421a"
+  },
+  "markets": {
+    "TSLA": {
+      "token": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+      "feed": "0x4A1166a659A55625345e9515b32adECea5547C38",
+      "name": "Tesla"
+    },
+    "NVDA": {
+      "token": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+      "feed": "0x379EC4f7C378F34a1B47E4F3cbeBCbAC3E8E9F15",
+      "name": "NVIDIA"
+    },
+    "AAPL": {
+      "token": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "feed": "0x6B22A786bAa607d76728168703a39Ea9C99f2cD0",
+      "name": "Apple"
+    },
+    "META": {
+      "token": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35",
+      "feed": "0x7C38C00C30BEe9378381E7B6135d7283356D71b1",
+      "name": "Meta"
+    },
+    "MSFT": {
+      "token": "0xe93237C50D904957Cf27E7B1133b510C669c2e74",
+      "feed": "0x45C3C877C15E6BA2EBB19eA114Ea508d14C1Af2E",
+      "name": "Microsoft"
+    },
+    "AMZN": {
+      "token": "0x12f190a9F9d7D37a250758b26824B97CE941bF54",
+      "feed": "0xD5a1508ceD74c084eBf3cBe853e2C968fB2a651C",
+      "name": "Amazon"
+    },
+    "GOOGL": {
+      "token": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3",
+      "feed": "0xF6f373a037c30F0e5010d854385cA89185AE638b",
+      "name": "Alphabet"
+    },
+    "PLTR": {
+      "token": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A",
+      "feed": "0x820ABedFF239034956B7A9d2F0a331f9F075eB4c",
+      "name": "Palantir"
+    },
+    "AMD": {
+      "token": "0x86923f96303D656E4aa86D9d42D1e57ad2023fdC",
+      "feed": "0x943A29E7ae51A4798823ca9eEd2ed533B2A22C72",
+      "name": "AMD"
+    },
+    "SPY": {
+      "token": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+      "feed": "0x319724394D3A0e3669269846abE664Cd621f9f6A",
+      "name": "SPDR S&P 500"
+    },
+    "QQQ": {
+      "token": "0xD5f3879160bc7c32ebb4dC785F8a4F505888de68",
+      "feed": "0x80901d846d5D7B030F26B480776EE3b29374C2ae",
+      "name": "Invesco QQQ"
+    },
+    "MSTR": {
+      "token": "0xec262a75e413fAfD0dF80480274532C79D42da09",
+      "feed": "0x396118bdFB181e6240E74D243F266B061c0edc3D",
+      "name": "Strategy"
+    },
+    "CRCL": {
+      "token": "0xdF0992E440dD0be65BD8439b609d6D4366bf1CB5",
+      "feed": "0x6652eDf64bA3731C4F2D3ce821A0Fb1f1f6b482a",
+      "name": "Circle"
+    },
+    "MU": {
+      "token": "0xfF080c8ce2E5feadaCa0Da81314Ae59D232d4afD",
+      "feed": "0x425EEFdCf05ed6526C3cE61Af99429A228a6d596",
+      "name": "Micron"
+    },
+    "GME": {
+      "token": "0x1b0E319c6A659F002271B69dB8A7df2F911c153E",
+      "feed": "0x27C71df6A64fB476468EdF256CF72c038baB5B67",
+      "name": "GameStop"
+    },
+    "INTC": {
+      "token": "0xc72b96e0E48ecd4DC75E1e45396e26300BC39681",
+      "feed": "0x3f390C5C24628Ac7C489515402235FeAD71D1913",
+      "name": "Intel"
+    },
+    "SNDK": {
+      "token": "0xB90A19fF0Af67f7779afF50A882A9CfF42446400",
+      "feed": "0xfb133Fa4B7b385802B693a293606682Df47109A3",
+      "name": "Sandisk"
+    },
+    "SPCX": {
+      "token": "0x4a0E65A3EcceC6dBe60AE065F2e7bb85Fae35eEa",
+      "feed": "0xB265810950ba6c5C0Ff821c9963014a56fD8Bffb",
+      "name": "SpaceX"
+    }
+  },
+  "liquidityVaults": {
+    "TSLA": {
+      "vault": "0xDDbF6740a7af215e227752a04ea44CC8F0F73922",
+      "position": "0x3C34eeB57521B9D0d4b4d9ba51713ca1f4Cca4E6",
+      "stock": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+      "name": "Tesla"
+    },
+    "NVDA": {
+      "vault": "0xCd860E40DD44DaB0a2140D9bE3eaD2810a9d5219",
+      "position": "0x03259FEAE285390FD302816287809fAc463F8168",
+      "stock": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+      "name": "NVIDIA"
+    },
+    "AAPL": {
+      "vault": "0x3cd55e5F973Adf4d08398Da8b00D9F3c163f0F28",
+      "position": "0x19180953CB0754F3e342c90A98fbf869d02f77a9",
+      "stock": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "name": "Apple"
+    },
+    "PLTR": {
+      "vault": "0x10D38AE9C9F078e9470BB096e3B5837dacE28906",
+      "position": "0x1C0324E7FD6fF1BDEa484C721E2105D7b5567b80",
+      "stock": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A",
+      "name": "Palantir"
+    },
+    "META": {
+      "vault": "0x3080F24704d7Ca3804123f98B6Ec84B12D2644ff",
+      "position": "0xd4FD107F0187A3047Fc9c214E28A0E13d97d661e",
+      "stock": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35",
+      "name": "Meta"
+    }
+  },
+  "creditLines": {
+    "META": "0x6Bcc79865833EFb50a2e78687BC3334f77d4Fe90"
+  },
+  "incomeVaults": {
+    "TSLA": {
+      "vault": "0x5E3a29a20307Ab031317eb51Df6Ce01dB2fbc616",
+      "stock": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+      "name": "Tesla"
+    },
+    "NVDA": {
+      "vault": "0x3bb8a4273eAAd1B97cd2Ab35fA6C64E989743386",
+      "stock": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+      "name": "NVIDIA"
+    },
+    "AAPL": {
+      "vault": "0x06FfF762dD8Dc28feDfA3Fe3A0ad53233E11EE40",
+      "stock": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "name": "Apple"
+    }
+  },
+  "timelock": "0xEFbD5bc8b338Cc19Ef3fc73e3310ffd79A523841",
+  "block": 80603470,
+  "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+  "token": null,
+  "tokenSetter": "0xFbcF41853e32d18d3A0Fdd133d118A92f941D419",
+  "oracle": "0x75144522a42aACD29eD465D42f43a916BCc330C3",
+  "swapAdapter": "0x9E0541aACD5c59A9fb2cede445dEa0A95Fb81185",
+  "buyBurn": "0xaDbDDD637f45212DfE64D3ECD12d9441FB59D6F5",
+  "feeRouter": "0x12BC5639971fB9482aFa5E65fccfE9270D4a0fBd",
+  "registry": "0xB98Ece5D527277d36FFacc73108367e10A316de9",
+  "options": "0xB5879895c73C88E2072F9eE87dD90E48D3E23e19",
+  "binaries": "0x48846b41F56B3ec6FF5511f243098dA02BFa70C6",
+  "pendingTimelockAcceptances": [
+    "0x75144522a42aACD29eD465D42f43a916BCc330C3",
+    "0xB98Ece5D527277d36FFacc73108367e10A316de9",
+    "0x9E0541aACD5c59A9fb2cede445dEa0A95Fb81185"
+  ]
+}

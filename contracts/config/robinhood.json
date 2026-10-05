@@ -1,0 +1,211 @@
+{
+  "network": {
+    "name": "Robinhood Chain",
+    "chainId": 4663,
+    "rpcUrl": "https://rpc.mainnet.chain.robinhood.com",
+    "explorer": "https://robinhoodchain.blockscout.com"
+  },
+  "uniswap": {
+    "poolManager": "0x8366a39CC670B4001A1121B8F6A443A643e40951",
+    "positionManager": "0x58daec3116aae6D93017bAAea7749052E8a04fA7",
+    "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+    "defaultFee": 3000,
+    "defaultTickSpacing": 60,
+    "ethUsdgPool": {
+      "fee": 100,
+      "tickSpacing": 1
+    }
+  },
+  "pons": {
+    "hook": "0xE5e702641Ea86F4ae6cC3cDaeD2B886f976Be044",
+    "poolFee": 0,
+    "poolTickSpacing": 200,
+    "tokenPageUrl": "https://www.ponsfamily.com/launchpad/"
+  },
+  "chainlink": {
+    "sequencerUptimeFeed": null,
+    "usdgUsdFeed": "0x61B7e5650328764B076A108EFF5fa7282a1B9aD2",
+    "usdgMaxAge": 93600,
+    "stockMaxAge": 93600
+  },
+  "tokens": {
+    "usdg": {
+      "address": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+      "decimals": 6
+    }
+  },
+  "stockTokens": {
+    "AAPL": {
+      "name": "Apple",
+      "address": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "chainlinkFeed": "0x6B22A786bAa607d76728168703a39Ea9C99f2cD0"
+    },
+    "AMD": {
+      "name": "AMD",
+      "address": "0x86923f96303D656E4aa86D9d42D1e57ad2023fdC",
+      "chainlinkFeed": "0x943A29E7ae51A4798823ca9eEd2ed533B2A22C72"
+    },
+    "AMZN": {
+      "name": "Amazon",
+      "address": "0x12f190a9F9d7D37a250758b26824B97CE941bF54",
+      "chainlinkFeed": "0xD5a1508ceD74c084eBf3cBe853e2C968fB2a651C"
+    },
+    "CRCL": {
+      "name": "Circle",
+      "address": "0xdF0992E440dD0be65BD8439b609d6D4366bf1CB5",
+      "chainlinkFeed": "0x6652eDf64bA3731C4F2D3ce821A0Fb1f1f6b482a"
+    },
+    "GME": {
+      "name": "GameStop",
+      "address": "0x1b0E319c6A659F002271B69dB8A7df2F911c153E",
+      "chainlinkFeed": "0x27C71df6A64fB476468EdF256CF72c038baB5B67"
+    },
+    "GOOGL": {
+      "name": "Alphabet",
+      "address": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3",
+      "chainlinkFeed": "0xF6f373a037c30F0e5010d854385cA89185AE638b"
+    },
+    "INTC": {
+      "name": "Intel",
+      "address": "0xc72b96e0E48ecd4DC75E1e45396e26300BC39681",
+      "chainlinkFeed": "0x3f390C5C24628Ac7C489515402235FeAD71D1913"
+    },
+    "META": {
+      "name": "Meta",
+      "address": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35",
+      "chainlinkFeed": "0x7C38C00C30BEe9378381E7B6135d7283356D71b1"
+    },
+    "MSFT": {
+      "name": "Microsoft",
+      "address": "0xe93237C50D904957Cf27E7B1133b510C669c2e74",
+      "chainlinkFeed": "0x45C3C877C15E6BA2EBB19eA114Ea508d14C1Af2E"
+    },
+    "MSTR": {
+      "name": "Strategy",
+      "address": "0xec262a75e413fAfD0dF80480274532C79D42da09",
+      "chainlinkFeed": "0x396118bdFB181e6240E74D243F266B061c0edc3D"
+    },
+    "MU": {
+      "name": "Micron",
+      "address": "0xfF080c8ce2E5feadaCa0Da81314Ae59D232d4afD",
+      "chainlinkFeed": "0x425EEFdCf05ed6526C3cE61Af99429A228a6d596"
+    },
+    "NVDA": {
+      "name": "NVIDIA",
+      "address": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+      "chainlinkFeed": "0x379EC4f7C378F34a1B47E4F3cbeBCbAC3E8E9F15"
+    },
+    "PLTR": {
+      "name": "Palantir",
+      "address": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A",
+      "chainlinkFeed": "0x820ABedFF239034956B7A9d2F0a331f9F075eB4c"
+    },
+    "QQQ": {
+      "name": "Invesco QQQ",
+      "address": "0xD5f3879160bc7c32ebb4dC785F8a4F505888de68",
+      "chainlinkFeed": "0x80901d846d5D7B030F26B480776EE3b29374C2ae"
+    },
+    "SNDK": {
+      "name": "Sandisk",
+      "address": "0xB90A19fF0Af67f7779afF50A882A9CfF42446400",
+      "chainlinkFeed": "0xfb133Fa4B7b385802B693a293606682Df47109A3"
+    },
+    "SPCX": {
+      "name": "SpaceX",
+      "address": "0x4a0E65A3EcceC6dBe60AE065F2e7bb85Fae35eEa",
+      "chainlinkFeed": "0xB265810950ba6c5C0Ff821c9963014a56fD8Bffb"
+    },
+    "SPY": {
+      "name": "SPDR S&P 500",
+      "address": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+      "chainlinkFeed": "0x319724394D3A0e3669269846abE664Cd621f9f6A"
+    },
+    "TSLA": {
+      "name": "Tesla",
+      "address": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+      "chainlinkFeed": "0x4A1166a659A55625345e9515b32adECea5547C38"
+    }
+  },
+  "launch": {
+    "markets": [
+      "TSLA",
+      "NVDA",
+      "AAPL",
+      "META",
+      "MSFT",
+      "AMZN",
+      "GOOGL",
+      "PLTR",
+      "AMD",
+      "SPY",
+      "QQQ",
+      "MSTR",
+      "CRCL",
+      "MU",
+      "GME",
+      "INTC",
+      "SNDK",
+      "SPCX"
+    ],
+    "options": {
+      "feeBps": 100,
+      "minNotionalUsdg": 10
+    },
+    "binaries": {
+      "feeBps": 100,
+      "minStakeUsdg": 5
+    },
+    "incomeVaults": [
+      "TSLA",
+      "NVDA",
+      "AAPL"
+    ],
+    "incomeVault": {
+      "depositCapUsdg": 25000,
+      "limits": {
+        "minOtmBps": 300,
+        "minPremiumBps": 20,
+        "maxCommitBps": 8000,
+        "quoteBandBps": 100,
+        "maxSwapLossBps": 100,
+        "entrySpreadBps": 100,
+        "maxBuyWindow": 21600,
+        "minRound": 86400,
+        "maxRound": 1209600
+      }
+    },
+    "liquidityVaults": [
+      "TSLA",
+      "NVDA",
+      "AAPL",
+      "PLTR",
+      "META"
+    ],
+    "creditLines": [
+      "META"
+    ],
+    "heldValueCapUsdg": 25000,
+    "creditLine": {
+      "supplyCapUsdg": 10000,
+      "borrowCapUsdg": 5000,
+      "risk": {
+        "ltvBps": 4000,
+        "liquidationThresholdBps": 5500,
+        "liquidationBonusBps": 600,
+        "closeFactorBps": 5000,
+        "maxCollateralShareBps": 3000,
+        "reserveFactorBps": 1000
+      },
+      "rates": {
+        "baseRatePerYear": "0.02",
+        "slope1PerYear": "0.06",
+        "slope2PerYear": "1.0",
+        "kinkUtilization": "0.8"
+      }
+    },
+    "buyBurnMinIntervalSeconds": 3600,
+    "buyBurnMaxUsdgPerRun": 250,
+    "buyBurnMaxStockPerRun": "0.5",
+    "timelockDelaySeconds": 172800
+  }
+}

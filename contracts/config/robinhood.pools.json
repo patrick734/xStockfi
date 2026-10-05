@@ -1,0 +1,218 @@
+{
+  "AAPL": {
+    "oracleUsd": 333.53369995,
+    "updatedAt": "2026-10-05T00:00:34.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0xc748f4671a867db48b552f6b7650bf3255e05f80f00e3f7aad1b17ccb7898fdb",
+      "spotUsdg": 333.6131,
+      "offBps": 2,
+      "liquidity": "653730559543635792"
+    }
+  },
+  "AMD": {
+    "oracleUsd": 635.565,
+    "updatedAt": "2026-10-05T04:33:22.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0xde9f85fdd9e05a943a52f2c69ffafe3064a3287df03d02c9b431bc92d4781274",
+      "spotUsdg": 635.6534,
+      "offBps": 1,
+      "liquidity": "237996825179722645"
+    }
+  },
+  "AMZN": {
+    "oracleUsd": 251.865,
+    "updatedAt": "2026-10-05T00:00:37.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0xd32646872e6712af8cf778e34b6bbef1d2ae0bddd83764e1b07333518ad59333",
+      "spotUsdg": 252.0024,
+      "offBps": 5,
+      "liquidity": "6243385292437571"
+    }
+  },
+  "CRCL": {
+    "oracleUsd": 83.1,
+    "updatedAt": "2026-10-05T07:09:47.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0x60a78f9462af550fbf603774b1eeb4a6b880cd2a475862a07b22d035f22310b7",
+      "spotUsdg": 3.402567865403252e+50,
+      "offBps": 4.0945461677536127e+52,
+      "liquidity": "0"
+    }
+  },
+  "GME": {
+    "oracleUsd": 25.165,
+    "updatedAt": "2026-10-05T06:59:39.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0x3d436b4fdc532c61a0bf15d6cae80a66eb8f28ee9daec34dbec4b5bc9964063b",
+      "spotUsdg": 25.1812,
+      "offBps": 6,
+      "liquidity": "1224688917933886"
+    }
+  },
+  "GOOGL": {
+    "oracleUsd": 344.25174587,
+    "updatedAt": "2026-10-05T00:00:17.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0xd4ecb79fdc521d7725d22b33ed43cb4e47aa96bfad76aa29577e3151f723ac5e",
+      "spotUsdg": 343.8313,
+      "offBps": -12,
+      "liquidity": "596396538727252925"
+    }
+  },
+  "INTC": {
+    "oracleUsd": 116.825,
+    "updatedAt": "2026-10-05T05:32:46.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0xf2e329e631d0fb315a5c563ee3a9120f24822b5ef6c502a91cb56b174d5d8c22",
+      "spotUsdg": 117.9074,
+      "offBps": 93,
+      "liquidity": "406537486993099413"
+    }
+  },
+  "META": {
+    "oracleUsd": 728.9494833,
+    "updatedAt": "2026-10-05T00:00:51.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0x5875d407a42965b0e768c8925cea290e06fa50603ef34fc99eb92a1050e6ae36",
+      "spotUsdg": 728.2951,
+      "offBps": -9,
+      "liquidity": "2656366907422536615"
+    }
+  },
+  "MSFT": {
+    "oracleUsd": 515.2376809,
+    "updatedAt": "2026-10-05T04:33:20.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0x9194a557b6a6bb2236b49ea7e2bbccec5d3eeb705aef00903be4b3de1d949579",
+      "spotUsdg": 515.9629,
+      "offBps": 14,
+      "liquidity": "329032568060326330"
+    }
+  },
+  "MSTR": {
+    "oracleUsd": 164.44,
+    "updatedAt": "2026-10-05T06:53:47.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0x72f7109f6d7e54e984f99c9f8d76f6b35617fc4f977ff311c9eaa5a2a524030f",
+      "spotUsdg": 3.402567865403252e+50,
+      "offBps": 2.069185031259579e+52,
+      "liquidity": "0"
+    }
+  },
+  "MU": {
+    "oracleUsd": 1076.90557151,
+    "updatedAt": "2026-10-05T00:00:24.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0x6fa3ee0048e78bf0a513eb0ab56f482944a767c21db990fcf555605e69f05659",
+      "spotUsdg": 1075.7932,
+      "offBps": -10,
+      "liquidity": "94056506294847218"
+    }
+  },
+  "NVDA": {
+    "oracleUsd": 235.21218565,
+    "updatedAt": "2026-10-05T05:33:18.000Z",
+    "pool": {
+      "fee": 100,
+      "tickSpacing": 1,
+      "poolId": "0x6444a8e0b267406a15db74ca00c4a24bdfa81ed3180f5b6d0851f8ed6f4f29c5",
+      "spotUsdg": 235.6434,
+      "offBps": 18,
+      "liquidity": "17764305219002737165"
+    }
+  },
+  "PLTR": {
+    "oracleUsd": 188.43,
+    "updatedAt": "2026-10-05T03:06:21.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0xee430ee1003e1985e1828a01b9a20dad67ad4302994fe2abb4a173de4ac54623",
+      "spotUsdg": 189.9537,
+      "offBps": 81,
+      "liquidity": "639796867789450786"
+    }
+  },
+  "QQQ": {
+    "oracleUsd": 751.76646241,
+    "updatedAt": "2026-10-05T00:00:47.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0xf9568ec0cba6e9ba30d9daabbf3e807813b8852e5737b7d83ea06529c73c9758",
+      "spotUsdg": 751.5993,
+      "offBps": -2,
+      "liquidity": "225406173518911"
+    }
+  },
+  "SNDK": {
+    "oracleUsd": 1726.09,
+    "updatedAt": "2026-10-05T03:06:23.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0x2707cb88a6a40fa0f948f58958051ba097d6f6a3cf7f87929bd68ccc5becea24",
+      "spotUsdg": 1727.5737,
+      "offBps": 9,
+      "liquidity": "41727389933073625"
+    }
+  },
+  "SPCX": {
+    "oracleUsd": 160.29,
+    "updatedAt": "2026-10-05T00:08:21.000Z",
+    "pool": {
+      "fee": 10000,
+      "tickSpacing": 200,
+      "poolId": "0xcb6ffbcc84359535c2cc0a5688c0a76520ea6e0a4820fddd3ac8d7880e576370",
+      "spotUsdg": 159.2291,
+      "offBps": -66,
+      "liquidity": "392435955285188901"
+    }
+  },
+  "SPY": {
+    "oracleUsd": 772.13424478,
+    "updatedAt": "2026-10-05T00:00:20.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0xfe2a80bb5618fd14984b92ca6d45bf5ba67443ddb1435e28b2e48df2fc1526cd",
+      "spotUsdg": 771.2907,
+      "offBps": -11,
+      "liquidity": "6930823775923947602"
+    }
+  },
+  "TSLA": {
+    "oracleUsd": 372.355,
+    "updatedAt": "2026-10-05T02:35:43.000Z",
+    "pool": {
+      "fee": 3000,
+      "tickSpacing": 60,
+      "poolId": "0x8517f8071ae5b831b738052f12125e8e3d6c158b78728aa44ce3b25e5104d32e",
+      "spotUsdg": 372.9729,
+      "offBps": 17,
+      "liquidity": "748932499858099944"
+    }
+  }
+}

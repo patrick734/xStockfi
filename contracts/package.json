@@ -1,0 +1,21 @@
+{
+  "name": "@xstockfi/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "export-abis": "node scripts/export-abis.js",
+    "deploy:local": "hardhat run scripts/deploy.js",
+    "deploy:robinhood": "hardhat run scripts/deploy.js --network robinhood"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.17"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.1.0",
+    "@uniswap/v4-core": "1.0.2"
+  }
+}

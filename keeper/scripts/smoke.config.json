@@ -1,0 +1,5 @@
+{
+  "loopIntervalSeconds": 1,
+  "incomeVaults": { "marketHoursOnly": false },
+  "harvest": { "intervalSeconds": 0 }
+}

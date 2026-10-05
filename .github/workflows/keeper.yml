@@ -1,0 +1,80 @@
+# xStockFi keeper: one cycle about every 15 minutes (GitHub may delay scheduled runs a little).
+# Does nothing until contracts/deployments/robinhood.json is committed.
+# Dry run (simulates, sends nothing) until the repository variable KEEPER_LIVE is set to 1.
+# Secret KEEPER_PRIVATE_KEY is created by: node tools/wallet.js keeper-secret patrick734/xStockfi. Optional secret RPC_URL.
+name: xStockFi keeper
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: xstockfi-keeper
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # only to keep the schedule from being paused after 60 quiet days
+
+jobs:
+  keeper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deployed yet?
+        id: dep
+        run: |
+          if [ -f contracts/deployments/robinhood.json ]; then echo "live=1" >> "$GITHUB_OUTPUT"; else echo "No deployment yet; nothing to do."; fi
+      - uses: actions/setup-node@v4
+        if: steps.dep.outputs.live == '1'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            contracts/package-lock.json
+            keeper/package-lock.json
+      - name: Cache compiled contracts
+        if: steps.dep.outputs.live == '1'
+        id: art
+        uses: actions/cache@v4
+        with:
+          path: contracts/artifacts
+          key: artifacts-${{ hashFiles('contracts/src/**', 'contracts/hardhat.config.js', 'contracts/package-lock.json') }}
+      - name: Compile contracts (ABIs for the keeper)
+        if: steps.dep.outputs.live == '1' && steps.art.outputs.cache-hit != 'true'
+        working-directory: contracts
+        run: npm ci --no-audit --no-fund && npx hardhat compile
+      - name: Install keeper
+        if: steps.dep.outputs.live == '1'
+        working-directory: keeper
+        run: npm ci --omit=dev --no-audit --no-fund
+      - name: Restore keeper state
+        if: steps.dep.outputs.live == '1'
+        uses: actions/cache/restore@v4
+        with:
+          path: keeper/.state
+          key: keeper-state-${{ github.run_id }}
+          restore-keys: keeper-state-
+      - name: Run one keeper cycle
+        if: steps.dep.outputs.live == '1'
+        working-directory: keeper
+        run: node src/index.js --once
+        env:
+          KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL || 'https://rpc.mainnet.chain.robinhood.com' }}
+          KEEPER_NETWORK: robinhood
+          DRY_RUN: ${{ vars.KEEPER_LIVE == '1' && '0' || '1' }}
+          KEEPER_STATE_FILE: .state/keeper.json
+      - name: Save keeper state
+        if: always() && steps.dep.outputs.live == '1' && hashFiles('keeper/.state/keeper.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: keeper/.state
+          key: keeper-state-${{ github.run_id }}
+      - name: Keep the schedule alive
+        if: always() && github.event_name == 'schedule'
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/keeper.yml/enable" >/dev/null || true
+        env:
+          GH_TOKEN: ${{ github.token }}

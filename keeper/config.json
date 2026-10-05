@@ -1,0 +1,73 @@
+{
+  "loopIntervalSeconds": 300,
+  "txConfirmations": 1,
+  "txTimeoutSeconds": 180,
+
+  "incomeVaults": {
+    "only": [],
+    "marketHoursOnly": true,
+    "expiryWeekday": 5,
+    "expiryHourUtc": 20,
+    "minVaultUsdg": "100",
+    "sellPuts": true,
+    "putOtmPct": 5,
+    "callOtmPct": 5,
+    "putSizeFraction": 0.95,
+    "minQuoteUsdg": "50",
+    "markupPct": 10,
+    "buyWindowSeconds": 14400,
+    "stopQuotingHoursBeforeExpiry": 24,
+    "sellAssignedStock": false,
+    "volatility": { "default": 0.5, "TSLA": 0.6, "NVDA": 0.5, "AAPL": 0.28, "META": 0.38, "PLTR": 0.65 }
+  },
+
+  "liquidityVaults": {
+    "only": []
+  },
+
+  "rebalance": {
+    "enabled": true,
+    "halfWidthTicks": 1200,
+    "edgeThresholdPct": 15,
+    "minSwapUsdg": "5",
+    "minIdleUsdg": "10",
+    "maxIdlePct": 25,
+    "routes": {}
+  },
+
+  "harvest": {
+    "enabled": true,
+    "intervalSeconds": 21600,
+    "minFeesUsdg": "0"
+  },
+
+  "binaries": {
+    "notePauses": true,
+    "settle": true,
+    "refundUnjoined": true,
+    "maxPerCycle": 20
+  },
+
+  "options": {
+    "releaseExpired": true,
+    "maxPerCycle": 20
+  },
+
+  "feeRouter": {
+    "enabled": true
+  },
+
+  "buyBurn": {
+    "enabled": true,
+    "slippageBps": 200,
+    "defaultRoute": ["IN", "USDG", "ETH", "XSF"],
+    "routes": {}
+  },
+
+  "creditLines": {
+    "claimReserves": true,
+    "claimIntervalSeconds": 86400,
+    "logUnhealthy": false,
+    "scanChunkBlocks": 50000
+  }
+}
